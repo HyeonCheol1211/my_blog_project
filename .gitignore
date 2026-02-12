@@ -1,0 +1,48 @@
+# =================================================================
+# 1. Java & Spring Boot (Gradle 기준)
+# =================================================================
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+!**/src/main/resources/*.properties
+!**/src/test/resources/*.properties
+
+# 핵심: DB 비밀번호나 API 키가 포함된 설정 파일 보호
+**/src/main/resources/application-local.properties
+**/src/main/resources/application-prod.properties
+*.log
+
+# =================================================================
+# 2. Frontend (Vue.js / Node.js)
+# =================================================================
+**/node_modules/
+**/dist/
+**/.env.local
+**/.env.*.local
+**/npm-debug.log*
+**/yarn-debug.log*
+**/yarn-error.log*
+
+# =================================================================
+# 3. JetBrains IDE (IntelliJ IDEA) & macOS
+# =================================================================
+.idea/
+*.iws
+*.iml
+*.ipr
+out/
+
+# macOS 시스템 파일
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+Network Trash Folder
+Temporary Items
+.apdisk
+
+# =================================================================
+# 4. OrbStack / Docker
+# =================================================================
+.orbstack/
+.docker/

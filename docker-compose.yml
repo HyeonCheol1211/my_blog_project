@@ -1,0 +1,33 @@
+version: '3.8'
+services:
+  db:
+    image: mysql:8.0
+    container_name: blog-db
+    environment:
+      MYSQL_ROOT_PASSWORD: 1234
+      MYSQL_DATABASE: blog_db
+    ports:
+      - "3306:3306"
+
+  backend:
+    build: ./backend
+    container_name: blog-backend
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/blog_db?serverTimezone=UTC&characterEncoding=UTF-8
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: 1234
+
+  frontend:
+    build: ./frontend
+    container_name: blog-frontend-vue
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app                # 내 컴퓨터의 frontend 폴더를 컨테이너의 /app에 연결
+      - /app/node_modules             # 컨테이너 안의 node_modules는 내 컴퓨터 설정에 덮어씌워지지 않게 보호
+    depends_on:
+      - backend
