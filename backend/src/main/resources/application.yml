@@ -1,14 +1,15 @@
 spring:
   datasource:
-    # 도커 네트워크 안에서는 'db'라는 이름으로 서로 통신합니다
-    url: jdbc:mysql://db:3306/blog_db?serverTimezone=UTC&characterEncoding=UTF-8
+    # 'db' 대신 'localhost'를 사용해야 인텔리제이에서 접속 가능합니다.
+    url: jdbc:mysql://localhost:3306/blog_db?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
     username: root
-    password: "1234" # docker-compose.yml에 적은 비밀번호
+    password: "1234" # docker-compose에 적으신 비밀번호
     driver-class-name: com.mysql.cj.jdbc.Driver
+
   jpa:
     hibernate:
-      ddl-auto: update # 엔티티 클래스를 바탕으로 테이블을 자동 생성합니다
-    show-sql: true # 실행되는 SQL 로그를 콘솔에 출력합니다
+      ddl-auto: update
+    show-sql: true
     properties:
       hibernate:
         format_sql: true

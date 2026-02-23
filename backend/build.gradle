@@ -26,8 +26,6 @@ dependencies {
     runtimeOnly 'com.mysql:mysql-connector-j'
 
     // 3. 편의 기능 (Getter, Setter 자동 생성 - 설치 필요 시)
-    compileOnly 'org.projectlombok:lombok'
-    annotationProcessor 'org.projectlombok:lombok'
 
     // 4. 테스트용
     testImplementation 'org.springframework.boot:spring-boot-starter-test'

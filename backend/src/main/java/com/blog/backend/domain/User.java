@@ -1,44 +1,48 @@
 package com.blog.backend.domain;
 
-import com.blog.backend.dto.SignUpDto;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
+@Table(name = "users")
 @Getter
-@Setter
-@Builder
 @NoArgsConstructor
-@AllArgsConstructor
 public class User {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @Column(nullable = false)
-    private String name;
-    private String email;
-    private String password;
-    private int age;
-    private String gender;
-    private LocalDate date;
 
-    public User(String name, String email, String password, int age, String gender) {
-        this.name = name;
+    @Column(unique = true, nullable = false)
+    private String username;
+
+    @Column(unique = true, nullable = false)
+    private String email;
+
+    @Column(nullable = false)
+    private String password;
+
+    private String profileImage;
+    private String bio;
+
+    private LocalDateTime createdAt;
+
+    @PrePersist
+    public void prePersist() {
+        this.createdAt = LocalDateTime.now();
+    }
+
+    @Builder
+    public User(String username, String email, String password, String profileImage, String bio) {
+        this.username = username;
         this.email = email;
         this.password = password;
-        this.age = age;
-        this.gender = gender;
-        this.date = LocalDate.now();
+        this.profileImage = profileImage;
+        this.bio = bio;
     }
 
-    public User(SignUpDto signUpDto,  LocalDate date) {
-        this.name = signUpDto.getName();
-        this.email = signUpDto.getEmail();
-        this.password = signUpDto.getPassword();
-        this.age = signUpDto.getAge();
-        this.gender = signUpDto.getGender();
-        this.date = date;
-    }
 }
