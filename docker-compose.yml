@@ -5,6 +5,9 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: 1234
       MYSQL_DATABASE: blog_db
+    volumes:
+      # [내 맥북의 폴더 경로] : [컨테이너 내부의 데이터 저장 경로]
+      - ./db_data:/var/lib/mysql
     ports:
       - "3306:3306"
     # [추가] DB가 진짜 살아있는지 확인하는 로직

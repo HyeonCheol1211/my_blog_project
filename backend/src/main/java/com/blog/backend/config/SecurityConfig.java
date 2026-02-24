@@ -1,24 +1,36 @@
-package com.blog.backend.config;
+package com.blog.backend.configuration;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
 @EnableWebSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http
-                .csrf(csrf -> csrf.disable()) // 테스트를 위해 CSRF 방어 잠시 해제
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/users/join").permitAll() // 회원가입 경로는 누구나 허용
-                        .anyRequest().authenticated() // 그 외 나머지는 인증 필요
-                );
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        return http
+                .httpBasic(AbstractHttpConfigurer::disable) // ui로 들어오는 것 disable
+                .csrf(AbstractHttpConfigurer::disable) // csrf 보안 disable
+                .cors(AbstractHttpConfigurer::disable) // cors 보안 disable
 
-        return http.build();
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/api/users/join", "/api/users/login").permitAll() // 로그인, 회원가입은 누구나 접근 가능
+                        .requestMatchers(HttpMethod.POST, "/api/users/**").permitAll() // (선택) POST 요청 열어두기
+                        .anyRequest().authenticated() // 나머지는 인증 필요
+                )
+
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS) // ★ 세션 사용 안 함 (JWT 필수)
+                )
+                .build();
     }
 }
