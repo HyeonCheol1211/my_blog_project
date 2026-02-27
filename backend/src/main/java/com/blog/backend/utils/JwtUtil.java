@@ -36,13 +36,24 @@ public class JwtUtil{
                 .getSubject();
     }
 
-    public boolean isExpired(String token) {
-        return Jwts.parserBuilder()
-                .setSigningKey(Keys.hmacShaKeyFor(secretKey.getBytes()))
-                .build()
-                .parseClaimsJws(token)
-                .getBody()
-                .getExpiration()
-                .before(new Date());
+    public boolean validateToken(String token) {
+        try {
+            Jwts.parserBuilder()
+                    .setSigningKey(Keys.hmacShaKeyFor(secretKey.getBytes()))
+                    .build()
+                    .parseClaimsJws(token);
+            return true; // 검증 성공
+        } catch (io.jsonwebtoken.security.SignatureException e) {
+            System.out.println("잘못된 JWT 서명입니다.");
+        } catch (io.jsonwebtoken.ExpiredJwtException e) {
+            System.out.println("만료된 JWT 토큰입니다.");
+        } catch (io.jsonwebtoken.MalformedJwtException e) {
+            System.out.println("유효하지 않은 구성의 JWT 토큰입니다.");
+        } catch (io.jsonwebtoken.UnsupportedJwtException e) {
+            System.out.println("지원되지 않는 형식의 JWT 토큰입니다.");
+        } catch (IllegalArgumentException e) {
+            System.out.println("JWT 클레임이 비어있습니다.");
+        }
+        return false; // 위 예외 중 하나라도 걸리면 유효하지 않음
     }
 }
