@@ -30,7 +30,7 @@ public class SecurityConfig {
 
                 // 3. 길 나누기 (VIP 패스 vs 일반 검사)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/users/join", "/api/users/login").permitAll() // 로그인, 회원가입은 토큰 없어도 무사 통과!
+                        .requestMatchers("/api/users/join", "/api/users/login", "/api/posts/list").permitAll() // 로그인, 회원가입은 토큰 없어도 무사 통과!
                         .anyRequest().authenticated() // 그 외의 모든 경로는 "무조건 토큰 검사해!"
                 )
 

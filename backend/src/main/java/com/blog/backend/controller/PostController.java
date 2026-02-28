@@ -3,6 +3,7 @@ package com.blog.backend.controller;
 import com.blog.backend.domain.Post;
 import com.blog.backend.dto.AddPostRequest;
 import com.blog.backend.dto.GetPostsResponse;
+import com.blog.backend.dto.PostDetailResponse;
 import com.blog.backend.dto.UpdatePostRequest;
 import com.blog.backend.service.PostService;
 import lombok.RequiredArgsConstructor;
@@ -24,12 +25,15 @@ public class PostController {
         List<Post> posts = postService.getMyPosts(username);
         List<GetPostsResponse> getPostResponse = posts.stream()
                 .map(p-> GetPostsResponse.builder()
-                .postId(p.getId())
-                        .userId(p.getUser().getId())
-                        .categoryId(p.getCategory().getId())
+                        .id(p.getId())
                         .title(p.getTitle())
                         .content(p.getContent())
+                        .author(p.getUser().getUsername())
+                        .categoryName(p.getCategory().getName())
                         .publicStatus(p.isPublicStatus())
+                        .createdAt(p.getCreatedAt())
+                        .updatedAt(p.getUpdatedAt())
+                        .likeCount((long)(p.getLikes().size()))
                         .build()
         ).toList();
         return ResponseEntity.ok(getPostResponse);
@@ -62,5 +66,31 @@ public class PostController {
         String username = authentication.getName();
         postService.updatePost(username, updatePostRequest, postId);
         return ResponseEntity.ok("수정이 완료되었습니다.");
+    }
+
+    @GetMapping("/{postId}")
+    public ResponseEntity<PostDetailResponse> getPost(@PathVariable Long postId, Authentication authentication){
+       String username = authentication.getName();
+       PostDetailResponse postDetailResponse = postService.getPost(postId, username);
+       return ResponseEntity.ok(postDetailResponse);
+    }
+
+    @GetMapping("/list")
+    public ResponseEntity<List<GetPostsResponse>> getPosts(){
+        List<Post> posts = postService.getPosts();
+        List<GetPostsResponse> getPostResponse = posts.stream()
+                .map(p-> GetPostsResponse.builder()
+                        .id(p.getId())
+                        .title(p.getTitle())
+                        .content(p.getContent())
+                        .author(p.getUser().getUsername())
+                        .categoryName(p.getCategory().getName())
+                        .publicStatus(p.isPublicStatus())
+                        .createdAt(p.getCreatedAt())
+                        .updatedAt(p.getUpdatedAt())
+                        .likeCount((long)(p.getLikes().size()))
+                        .build()
+                ).toList();
+        return ResponseEntity.ok(getPostResponse);
     }
 }

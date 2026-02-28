@@ -5,6 +5,8 @@ import com.blog.backend.domain.Post;
 import com.blog.backend.domain.User;
 import com.blog.backend.domain.repository.*;
 import com.blog.backend.dto.AddPostRequest;
+import com.blog.backend.dto.CommentResponse;
+import com.blog.backend.dto.PostDetailResponse;
 import com.blog.backend.dto.UpdatePostRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -101,5 +103,39 @@ public class PostService {
             category = post.getCategory();
         }
         post.update(user, category, title, content, publicStatus);
+    }
+
+    public PostDetailResponse getPost(Long postId, String username) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(()-> new RuntimeException("해당 ID의 글이 존재하지 않습니다."));
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(()-> new RuntimeException("유저가 존재하지 않습니다."));
+        if(!post.isPublicStatus() && !post.getUser().equals(user)){
+            throw new RuntimeException("공개되지 않은 게시글 입니다.");
+        }
+        List<CommentResponse> commentsResponse = post.getComments().stream()
+                .map(c->CommentResponse.builder()
+                                .commentId(c.getId())
+                                .userId(c.getUser().getId())
+                                .postId(c.getPost().getId())
+                                .content(c.getContent())
+                                .build()
+                        ).toList();
+        return PostDetailResponse.builder()
+                .id(post.getId())
+                .title(post.getTitle())
+                .content(post.getContent())
+                .author(post.getUser().getUsername())
+                .categoryName(post.getCategory().getName())
+                .publicStatus(post.isPublicStatus())
+                .createdAt(post.getCreatedAt())
+                .updatedAt(post.getUpdatedAt())
+                .likeCount((long) post.getLikes().size())
+                .commentsResponse(commentsResponse)
+                .build();
+    }
+
+    public List<Post> getPosts() {
+        return postRepository.findAllByPublicStatusTrue();
     }
 }
