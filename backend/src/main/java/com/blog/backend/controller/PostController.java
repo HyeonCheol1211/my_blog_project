@@ -1,12 +1,8 @@
 package com.blog.backend.controller;
 
-import com.blog.backend.domain.Post;
-import com.blog.backend.dto.AddPostRequest;
-import com.blog.backend.dto.GetPostsResponse;
-import com.blog.backend.dto.PostDetailResponse;
-import com.blog.backend.dto.UpdatePostRequest;
+import com.blog.backend.dto.*;
 import com.blog.backend.service.PostService;
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -14,83 +10,70 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequiredArgsConstructor
 @RequestMapping("/api/posts")
 public class PostController {
     private final PostService postService;
 
+    @Autowired
+    public PostController(PostService postService) {
+        this.postService = postService;
+    }
+
     @GetMapping("/my-list")
-    public ResponseEntity<List<GetPostsResponse>> getMyPosts(Authentication authentication){
-        String username = authentication.getName();
-        List<Post> posts = postService.getMyPosts(username);
-        List<GetPostsResponse> getPostResponse = posts.stream()
-                .map(p-> GetPostsResponse.builder()
-                        .id(p.getId())
-                        .title(p.getTitle())
-                        .content(p.getContent())
-                        .author(p.getUser().getUsername())
-                        .categoryName(p.getCategory().getName())
-                        .publicStatus(p.isPublicStatus())
-                        .createdAt(p.getCreatedAt())
-                        .updatedAt(p.getUpdatedAt())
-                        .likeCount((long)(p.getLikes().size()))
-                        .build()
-        ).toList();
+    public ResponseEntity<List<PostResponse>> getMyPosts(Authentication authentication){
+        String username = null;
+        if(authentication != null) {
+            username = authentication.getName();
+        }
+        List<PostResponse> getPostResponse = postService.getMyPosts(username);
         return ResponseEntity.ok(getPostResponse);
     }
 
 
-    @PostMapping("/add")
-    public ResponseEntity<String> addPost(
+    @PostMapping("")
+    public ResponseEntity<PostResponse> addPost(
             @RequestBody AddPostRequest addPostRequest
             , Authentication authentication){
         String username = authentication.getName();
-        postService.addPost(username, addPostRequest);
-        return ResponseEntity.ok("글이 추가되었습니다.");
+        PostResponse postResponse = postService.addPost(username, addPostRequest);
+        return ResponseEntity.ok(postResponse);
     }
 
     @DeleteMapping("/{postId}")
-    public ResponseEntity<String> deletePost(
+    public ResponseEntity<DeletePostResponse> deletePost(
             @PathVariable Long postId,
             Authentication authentication){
-        String username = authentication.getName();
-        postService.deletePost(username, postId);
-        return ResponseEntity.ok("삭제가 완료되었습니다.");
+        String username = null;
+        if(authentication != null) {
+            username = authentication.getName();
+        }
+        DeletePostResponse deletePostResponse= postService.deletePost(username, postId);
+        return ResponseEntity.ok(deletePostResponse);
     }
 
-    @PutMapping("/update/{postId}")
-    public ResponseEntity<String> updatePost(
+    @PutMapping("/{postId}")
+    public ResponseEntity<PostResponse> updatePost(
             @RequestBody UpdatePostRequest updatePostRequest,
             @PathVariable Long postId,
             Authentication authentication){
         String username = authentication.getName();
-        postService.updatePost(username, updatePostRequest, postId);
-        return ResponseEntity.ok("수정이 완료되었습니다.");
+        PostResponse postResponse = postService.updatePost(username, updatePostRequest, postId);
+        return ResponseEntity.ok(postResponse);
     }
 
     @GetMapping("/{postId}")
     public ResponseEntity<PostDetailResponse> getPost(@PathVariable Long postId, Authentication authentication){
-       String username = authentication.getName();
+       String username = null;
+       if(authentication != null && authentication.isAuthenticated() && !authentication.getName().equals("anonymousUser")){
+           username = authentication.getName();
+       }
        PostDetailResponse postDetailResponse = postService.getPost(postId, username);
        return ResponseEntity.ok(postDetailResponse);
     }
 
     @GetMapping("/list")
-    public ResponseEntity<List<GetPostsResponse>> getPosts(){
-        List<Post> posts = postService.getPosts();
-        List<GetPostsResponse> getPostResponse = posts.stream()
-                .map(p-> GetPostsResponse.builder()
-                        .id(p.getId())
-                        .title(p.getTitle())
-                        .content(p.getContent())
-                        .author(p.getUser().getUsername())
-                        .categoryName(p.getCategory().getName())
-                        .publicStatus(p.isPublicStatus())
-                        .createdAt(p.getCreatedAt())
-                        .updatedAt(p.getUpdatedAt())
-                        .likeCount((long)(p.getLikes().size()))
-                        .build()
-                ).toList();
-        return ResponseEntity.ok(getPostResponse);
+    public ResponseEntity<List<PostResponse>> getPosts(){
+        List<PostResponse> postsResponse = postService.getPosts();
+        return ResponseEntity.ok(postsResponse);
     }
 }

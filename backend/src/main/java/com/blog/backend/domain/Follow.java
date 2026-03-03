@@ -2,6 +2,7 @@ package com.blog.backend.domain;
 
 import jakarta.persistence.*;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 
@@ -21,10 +22,7 @@ public class Follow {
     @JoinColumn(name = "following_id")
     private User user2;
 
+    @CreationTimestamp
     private LocalDateTime createdAt;
 
-    @PrePersist
-    private void prePersist(){
-        this.createdAt = LocalDateTime.now();
-    }
 }

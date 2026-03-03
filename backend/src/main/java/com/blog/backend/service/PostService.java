@@ -1,14 +1,15 @@
 package com.blog.backend.service;
 
 import com.blog.backend.domain.Category;
+import com.blog.backend.domain.Comment;
 import com.blog.backend.domain.Post;
 import com.blog.backend.domain.User;
 import com.blog.backend.domain.repository.*;
-import com.blog.backend.dto.AddPostRequest;
-import com.blog.backend.dto.CommentResponse;
-import com.blog.backend.dto.PostDetailResponse;
-import com.blog.backend.dto.UpdatePostRequest;
+import com.blog.backend.dto.*;
+import com.blog.backend.exception.PostNotFoundException;
+import com.blog.backend.exception.UserNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,15 +26,29 @@ public class PostService {
     private final CommentRepository commentRepository;
 
     @Transactional
-    public void addPost(String username, AddPostRequest addPostRequest){
-        String categoryName = addPostRequest.getCategoryName();
+    public PostResponse addPost(String username, AddPostRequest addPostRequest){
+        String categoryName = addPostRequest.categoryName();
         User user = userRepository.findByUsername(username)
-                .orElseThrow(()->new RuntimeException("존재하지 않는 유저라 글을 쓸 수 없습니다."));
+                .orElseThrow(()->new UserNotFoundException(username));
         Category category = categoryRepository.findByNameAndUser(categoryName, user)
                 .orElseGet(()->addCategory(user, categoryName));
         Post post = addPostRequest.toEntity(user, category);
         postRepository.save(post);
         category.increaseCount();
+
+        Long likeCount = likeRepository.countByPost(post);
+
+        return PostResponse.builder()
+                .id(post.getId())
+                .title(post.getTitle())
+                .content(post.getContent())
+                .author(post.getUser().getUsername())
+                .categoryName(post.getCategory().getName())
+                .publicStatus(post.isPublicStatus())
+                .createdAt(post.getCreatedAt())
+                .updatedAt(post.getUpdatedAt())
+                .likeCount(likeCount)
+                .build();
     }
 
     private Category addCategory(User user, String categoryName) {
@@ -45,42 +60,60 @@ public class PostService {
     }
 
     @Transactional
-    public void deletePost(String username, Long postId){
+    public DeletePostResponse deletePost(String username, Long postId){
         Post post = postRepository.findById(postId)
-                .orElseThrow(()-> new RuntimeException("일치하는 글이 없습니다."));
+                .orElseThrow(()-> new PostNotFoundException(postId));
         User user = userRepository.findByUsername(username)
-                .orElseThrow(()-> new RuntimeException("유저가 존재하지 않습니다."));
+                .orElseThrow(()-> new UserNotFoundException(username));
         if(!user.equals(post.getUser())){
-            throw new RuntimeException("글의 작성자만 삭제할 수 있습니다.");
+            throw new AccessDeniedException("글의 작성자만 삭제할 수 있습니다.");
         }
         Category category = post.getCategory();
         Long cnt = category.getCount();
-        if(cnt==1) {
+        if(cnt<=1) {
             categoryRepository.delete(category);
-        }else{
+        }
+        if(cnt>1){
             category.decreaseCount();
         }
         //글 삭제
         postRepository.delete(post);
+        return DeletePostResponse.builder()
+                .id(postId)
+                .message("성공적으로 삭제되었습니다.")
+                .build();
     }
 
-    public List<Post> getMyPosts(String username){
+    public List<PostResponse> getMyPosts(String username){
         User user = userRepository.findByUsername(username)
-                        .orElseThrow(()->new RuntimeException("유저가 존재하지 않습니다."));
-        return postRepository.findAllByUser(user);
+                        .orElseThrow(()->new UserNotFoundException(username));
+        List<Post> posts =  postRepository.findAllByUser(user);
+        return posts.stream()
+                .map(p-> PostResponse.builder()
+                        .id(p.getId())
+                        .title(p.getTitle())
+                        .content(p.getContent())
+                        .author(p.getUser().getUsername())
+                        .categoryName(p.getCategory().getName())
+                        .publicStatus(p.isPublicStatus())
+                        .createdAt(p.getCreatedAt())
+                        .updatedAt(p.getUpdatedAt())
+                        .likeCount(likeRepository.countByPost(p))
+                        .build()
+                ).toList();
     }
 
 
     @Transactional
-    public void updatePost(String username, UpdatePostRequest updatePostRequest, Long postId) {
+    public PostResponse updatePost(String username, UpdatePostRequest updatePostRequest, Long postId) {
         User user = userRepository.findByUsername(username)
-                .orElseThrow(()->new RuntimeException("유저가 존재하지 않습니다."));
+                .orElseThrow(()->new UserNotFoundException(username));
 
         Post post = postRepository.findById(postId)
-                .orElseThrow(()->new RuntimeException("해당 아이디의 게시글이 존재하지 않습니다."));
+                .orElseThrow(()->new PostNotFoundException(postId));
 
         if(!user.getId().equals(post.getUser().getId())){
-            throw new RuntimeException("작성자만 수정할 수 있습니다.");
+            throw new AccessDeniedException("작성자만 수정할 수 있습니다.");
         }
 
         String title = updatePostRequest.getTitle();
@@ -102,18 +135,37 @@ public class PostService {
         }else{
             category = post.getCategory();
         }
-        post.update(user, category, title, content, publicStatus);
+        post.update(category, title, content, publicStatus);
+
+        Long likeCount = likeRepository.countByPost(post);
+
+        return PostResponse.builder()
+                .id(post.getId())
+                .title(post.getTitle())
+                .content(post.getContent())
+                .author(post.getUser().getUsername())
+                .categoryName(post.getCategory().getName())
+                .publicStatus(post.isPublicStatus())
+                .createdAt(post.getCreatedAt())
+                .updatedAt(post.getUpdatedAt())
+                .likeCount(likeCount)
+                .build();
     }
 
     public PostDetailResponse getPost(Long postId, String username) {
         Post post = postRepository.findById(postId)
-                .orElseThrow(()-> new RuntimeException("해당 ID의 글이 존재하지 않습니다."));
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(()-> new RuntimeException("유저가 존재하지 않습니다."));
-        if(!post.isPublicStatus() && !post.getUser().equals(user)){
-            throw new RuntimeException("공개되지 않은 게시글 입니다.");
+                .orElseThrow(()-> new PostNotFoundException(postId));
+
+        if(!post.isPublicStatus()){
+            if(!post.getUser().getUsername().equals(username)){
+                throw new AccessDeniedException("비공개 게시글은 작성자 본인만 확인할 수 있습니다.");
+            }
         }
-        List<CommentResponse> commentsResponse = post.getComments().stream()
+
+        List<Comment> comments = commentRepository.findAllByPost(post);
+        Long likeCount = likeRepository.countByPost(post);
+
+        List<CommentResponse> commentsResponse = comments.stream()
                 .map(c->CommentResponse.builder()
                                 .commentId(c.getId())
                                 .userId(c.getUser().getId())
@@ -130,12 +182,26 @@ public class PostService {
                 .publicStatus(post.isPublicStatus())
                 .createdAt(post.getCreatedAt())
                 .updatedAt(post.getUpdatedAt())
-                .likeCount((long) post.getLikes().size())
+                .likeCount(likeCount)
                 .commentsResponse(commentsResponse)
                 .build();
     }
 
-    public List<Post> getPosts() {
-        return postRepository.findAllByPublicStatusTrue();
+    public List<PostResponse> getPosts() {
+        List<Post> posts =  postRepository.findAllByPublicStatusTrue();
+
+        return posts.stream()
+                .map(p-> PostResponse.builder()
+                        .id(p.getId())
+                        .title(p.getTitle())
+                        .content(p.getContent())
+                        .author(p.getUser().getUsername())
+                        .categoryName(p.getCategory().getName())
+                        .publicStatus(p.isPublicStatus())
+                        .createdAt(p.getCreatedAt())
+                        .updatedAt(p.getUpdatedAt())
+                        .likeCount(likeRepository.countByPost(p))
+                        .build()
+                ).toList();
     }
 }

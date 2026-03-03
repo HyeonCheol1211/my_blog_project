@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 
@@ -29,12 +30,9 @@ public class User {
     private String profileImage;
     private String bio;
 
+    @CreationTimestamp
     private LocalDateTime createdAt;
 
-    @PrePersist
-    public void prePersist() {
-        this.createdAt = LocalDateTime.now();
-    }
 
     @Builder
     public User(String username, String email, String password, String profileImage, String bio) {

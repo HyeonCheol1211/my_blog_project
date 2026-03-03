@@ -1,4 +1,11 @@
 package com.blog.backend.exception.dto;
 
-public record ErrorResponse() {
+import lombok.Builder;
+
+@Builder
+public record ErrorResponse(
+        int status,
+        String error,
+        String message
+) {
 }

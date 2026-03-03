@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 
@@ -27,12 +28,8 @@ public class Like {
     @Column(nullable = false)
     private Long type;
 
+    @CreationTimestamp
     private LocalDateTime createdAt;
-
-    @PrePersist
-    private void prePersist(){
-        this.createdAt = LocalDateTime.now();
-    }
 
     @Builder
     public Like(Long type){

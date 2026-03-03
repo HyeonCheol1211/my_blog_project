@@ -29,6 +29,7 @@ dependencies {
 
     // 4. 테스트용
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.security:spring-security-test'
 
     //JWT를 라이브러리
     implementation 'org.springframework.boot:spring-boot-starter-security'

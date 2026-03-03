@@ -8,4 +8,8 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface LikeRepository extends JpaRepository<Like, Long> {
     public void deleteByPost(Post post);
+
+    public Long countById(Long id);
+
+    public Long countByPost(Post post);
 }

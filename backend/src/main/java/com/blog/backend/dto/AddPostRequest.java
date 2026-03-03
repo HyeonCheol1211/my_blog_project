@@ -3,20 +3,21 @@ package com.blog.backend.dto;
 import com.blog.backend.domain.Category;
 import com.blog.backend.domain.Post;
 import com.blog.backend.domain.User;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.Builder;
 
-@AllArgsConstructor
-@NoArgsConstructor
-@Getter
-public class AddPostRequest {
-    private String categoryName;
-    private String title;
-    private String content;
-    private boolean publicStatus;
+@Builder
+public record AddPostRequest(
+    String categoryName,
+    String title,
+    String content,
+    boolean publicStatus
+){
 
-    public Post toEntity(User user, Category category){
+    public AddPostRequest(String categoryName) {
+        this(categoryName, null, null, false);
+    }
+
+    public Post toEntity(User user, Category category) {
         return Post.builder()
                 .user(user)
                 .category(category)

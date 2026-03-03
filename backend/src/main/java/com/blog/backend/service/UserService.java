@@ -2,6 +2,12 @@ package com.blog.backend.service;
 
 import com.blog.backend.domain.User;
 import com.blog.backend.domain.repository.UserRepository;
+import com.blog.backend.dto.UserJoinRequest;
+import com.blog.backend.dto.UserResponse;
+import com.blog.backend.exception.DuplicateEmailException;
+import com.blog.backend.exception.DuplicateUsernameException;
+import com.blog.backend.exception.UserNotFoundException;
+import com.blog.backend.exception.PasswordNotCorrectException;
 import com.blog.backend.utils.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -15,32 +21,36 @@ public class UserService {
     private final JwtUtil jwtUtil;
 
     @Transactional
-    public Long join(User user){
+    public UserResponse join(UserJoinRequest userJoinRequest){
+        User user = userJoinRequest.toEntity();
         validateDuplicateUser(user);
         userRepository.save(user);
-        return user.getId();
+        return UserResponse.builder()
+                .username(user.getUsername())
+                .email(user.getEmail())
+                .build();
     }
 
     public String login(String username, String password){
         User selectedUser = userRepository.findByUsername(username)
-                .orElseThrow(()->new RuntimeException("존재하지 않는 유저입니다."));
+                .orElseThrow(()->new UserNotFoundException("존재하지 않는 유저입니다."));
 
         if(!selectedUser.getPassword().equals(password)){
-            throw new RuntimeException("비밀번호가 틀렸습니다.");
+            throw new PasswordNotCorrectException(password);
         }
 
         return jwtUtil.createToken(username);
     }
 
     private void validateDuplicateUser(User user) {
-        userRepository.findByEmail(user.getEmail())
-                .ifPresent(u->{
-                    throw new IllegalStateException("이미 존재하는 이메일입니다.");
-                });
-
         userRepository.findByUsername(user.getUsername())
                 .ifPresent(u->{
-                    throw new IllegalStateException("이미 존재하는 유저네임입니다.");
+                    throw new DuplicateUsernameException(u.getUsername());
                 });
+        userRepository.findByEmail(user.getEmail())
+                .ifPresent(u->{
+                    throw new DuplicateEmailException(u.getEmail());
+                });
+
     }
 }

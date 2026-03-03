@@ -10,6 +10,7 @@ build/
 # 핵심: DB 비밀번호나 API 키가 포함된 설정 파일 보호
 **/src/main/resources/application-local.properties
 **/src/main/resources/application-prod.properties
+**/src/main/resources/application.yml
 *.log
 
 # =================================================================

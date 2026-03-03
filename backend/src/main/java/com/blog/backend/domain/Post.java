@@ -5,10 +5,10 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
 @Entity
 @NoArgsConstructor
@@ -38,26 +38,11 @@ public class Post {
     private boolean publicStatus;
 
     @Column(updatable = false)
+    @CreationTimestamp
     private LocalDateTime createdAt;
 
+    @UpdateTimestamp
     private LocalDateTime updatedAt;
-
-    @OneToMany(mappedBy = "post", cascade = CascadeType.REMOVE, orphanRemoval = true)
-    private List<Comment> comments = new ArrayList<>();
-
-    @OneToMany(mappedBy = "post", cascade = CascadeType.REMOVE, orphanRemoval = true)
-    private List<Like> likes = new ArrayList<>();
-
-    @PrePersist
-    private void prePersist(){
-        this.updatedAt = LocalDateTime.now();
-        this.createdAt = LocalDateTime.now();
-    }
-
-    @PreUpdate
-    private void preUpdate(){
-        this.updatedAt = LocalDateTime.now();
-    }
 
     @Builder
     public Post(User user, Category category, String title, String content, boolean publicStatus){
@@ -68,8 +53,7 @@ public class Post {
         this.publicStatus = publicStatus;
     }
 
-    public void update(User user, Category category, String title, String content, Boolean publicStatus) {
-        this.user = user;
+    public void update(Category category, String title, String content, Boolean publicStatus) {
         this.category = category;
         this.title = title;
         this.content = content;
