@@ -1,9 +1,11 @@
 package com.blog.backend.controller;
 
 import com.blog.backend.domain.Category;
+import com.blog.backend.domain.Comment;
 import com.blog.backend.domain.Post;
 import com.blog.backend.domain.User;
 import com.blog.backend.domain.repository.CategoryRepository;
+import com.blog.backend.domain.repository.CommentRepository;
 import com.blog.backend.domain.repository.PostRepository;
 import com.blog.backend.domain.repository.UserRepository;
 import com.blog.backend.dto.AddPostRequest;
@@ -46,6 +48,9 @@ class PostControllerTest {
 
     @Autowired
     private PostRepository postRepository;
+
+    @Autowired
+    private CommentRepository commentRepository;
 
     private Post savedPost;
     private Post privatedPost;
@@ -103,6 +108,14 @@ class PostControllerTest {
                 .build();
         this.savedPost = post1;
         postRepository.save(post1);
+
+        Comment comment1 = Comment.builder()
+                .post(post1)
+                .content("첫번째 게시글의 첫번째 댓글")
+                .user(user2)
+                .build();
+
+        commentRepository.save(comment1);
 
         Post post2 = Post.builder()
                 .user(user1)

@@ -116,14 +116,14 @@ public class PostService {
             throw new AccessDeniedException("작성자만 수정할 수 있습니다.");
         }
 
-        String title = updatePostRequest.getTitle();
-        String content = updatePostRequest.getContent();
-        String categoryName = updatePostRequest.getCategoryName();
-        Boolean publicStatus = updatePostRequest.isPublicStatus();
+        String title = updatePostRequest.title();
+        String content = updatePostRequest.content();
+        String categoryName = updatePostRequest.categoryName();
+        Boolean publicStatus = updatePostRequest.publicStatus();
         Category category;
         //카테고리가 바뀐 경우 따져줘야함
         if(!post.getCategory().getName().equals(categoryName)) {//바뀜
-            category = categoryRepository.findByNameAndUser(updatePostRequest.getCategoryName(), user)
+            category = categoryRepository.findByNameAndUser(updatePostRequest.categoryName(), user)
                     .orElseGet(() -> addCategory(user, categoryName));
             category.increaseCount();
 
