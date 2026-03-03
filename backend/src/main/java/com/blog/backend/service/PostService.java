@@ -6,10 +6,10 @@ import com.blog.backend.domain.Post;
 import com.blog.backend.domain.User;
 import com.blog.backend.domain.repository.*;
 import com.blog.backend.dto.*;
+import com.blog.backend.exception.AuthorOnlyException;
 import com.blog.backend.exception.PostNotFoundException;
 import com.blog.backend.exception.UserNotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -66,7 +66,7 @@ public class PostService {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(()-> new UserNotFoundException(username));
         if(!user.equals(post.getUser())){
-            throw new AccessDeniedException("글의 작성자만 삭제할 수 있습니다.");
+            throw new AuthorOnlyException(user.getId());
         }
         Category category = post.getCategory();
         Long cnt = category.getCount();
@@ -113,7 +113,7 @@ public class PostService {
                 .orElseThrow(()->new PostNotFoundException(postId));
 
         if(!user.getId().equals(post.getUser().getId())){
-            throw new AccessDeniedException("작성자만 수정할 수 있습니다.");
+            throw new AuthorOnlyException(post.getUser().getId());
         }
 
         String title = updatePostRequest.title();
@@ -157,8 +157,14 @@ public class PostService {
                 .orElseThrow(()-> new PostNotFoundException(postId));
 
         if(!post.isPublicStatus()){
-            if(!post.getUser().getUsername().equals(username)){
-                throw new AccessDeniedException("비공개 게시글은 작성자 본인만 확인할 수 있습니다.");
+            if(username==null){
+                throw new AuthorOnlyException(post.getUser().getId());
+            }
+
+            User user = userRepository.findByUsername(username)
+                    .orElseThrow(()-> new UserNotFoundException(username));
+            if(!user.getId().equals(post.getUser().getId())){
+                throw new AuthorOnlyException(post.getUser().getId());
             }
         }
 

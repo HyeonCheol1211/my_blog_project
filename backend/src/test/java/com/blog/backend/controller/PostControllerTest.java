@@ -329,7 +329,7 @@ class PostControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonRequest))
                 .andExpect(status().isForbidden())
-                .andExpect(jsonPath("$.message").value("작성자만 수정할 수 있습니다."))
+                .andExpect(jsonPath("$.message").value("작성자만 접근할 수 있습니다. (작성자 ID : " + savedPost.getUser().getId() + ")"))
                 .andReturn();
         System.out.println(pretty(result));
     }
@@ -377,7 +377,7 @@ class PostControllerTest {
         MvcResult result = mockMvc.perform(get("/api/posts/" + privatedPost.getId())
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isForbidden())
-                .andExpect(jsonPath("$.message").value("비공개 게시글은 작성자 본인만 확인할 수 있습니다."))
+                .andExpect(jsonPath("$.message").value("작성자만 접근할 수 있습니다. (작성자 ID : " + privatedPost.getUser().getId() + ")"))
                 .andReturn();
 
         System.out.println(pretty(result));
@@ -390,7 +390,7 @@ class PostControllerTest {
         MvcResult result = mockMvc.perform(get("/api/posts/" + privatedPost.getId())
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isForbidden())
-                .andExpect(jsonPath("$.message").value("비공개 게시글은 작성자 본인만 확인할 수 있습니다."))
+                .andExpect(jsonPath("$.message").value("작성자만 접근할 수 있습니다. (작성자 ID : " + privatedPost.getUser().getId() + ")"))
                 .andReturn();
 
         System.out.println(pretty(result));
