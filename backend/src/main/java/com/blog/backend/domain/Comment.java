@@ -1,5 +1,6 @@
 package com.blog.backend.domain;
 
+import com.blog.backend.dto.AddCommentRequest;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
@@ -36,6 +37,10 @@ public class Comment {
         this.post = post;
         this.user = user;
         this.content = content;
+    }
+
+    public void updateComment(AddCommentRequest addCommentRequest){
+        this.content = addCommentRequest.content();
     }
 
 }

@@ -1,7 +1,7 @@
 package com.blog.backend.controller;
 
 import com.blog.backend.dto.AddCommentRequest;
-import com.blog.backend.dto.AddCommentResponse;
+import com.blog.backend.dto.CommentResponse;
 import com.blog.backend.service.CommentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -15,14 +15,27 @@ public class CommentController {
     private final CommentService commentService;
 
     @PostMapping("/{postId}")
-    public ResponseEntity<AddCommentResponse> addComment(
+    public ResponseEntity<CommentResponse> addComment(
             @RequestBody AddCommentRequest addCommentRequest,
             @PathVariable Long postId, Authentication authentication){
         String username = null;
         if(authentication != null){
             username = authentication.getName();
         }
-        AddCommentResponse addCommentResponse = commentService.addComment(addCommentRequest, postId, username);
-        return ResponseEntity.ok(addCommentResponse);
+        CommentResponse commentResponse = commentService.addComment(addCommentRequest, postId, username);
+        return ResponseEntity.ok(commentResponse);
+    }
+
+    @PutMapping("/{commentId}")
+    public ResponseEntity<CommentResponse> editComment(
+            @PathVariable Long commentId,
+            @RequestBody AddCommentRequest addCommentRequest,
+            Authentication authentication){
+        String username = null;
+        if(authentication != null){
+            username = authentication.getName();
+        }
+        CommentResponse commentResponse = commentService.updateComment(commentId, addCommentRequest, username);
+        return ResponseEntity.ok(commentResponse);
     }
 }

@@ -5,7 +5,7 @@ import lombok.Builder;
 @Builder
 public record CommentResponse (
     Long commentId,
-    Long userId,
+    String author,
     Long postId,
     String content
 ){

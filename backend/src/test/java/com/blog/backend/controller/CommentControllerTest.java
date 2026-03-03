@@ -1,6 +1,7 @@
 package com.blog.backend.controller;
 
 import com.blog.backend.domain.Category;
+import com.blog.backend.domain.Comment;
 import com.blog.backend.domain.Post;
 import com.blog.backend.domain.User;
 import com.blog.backend.domain.repository.CategoryRepository;
@@ -18,9 +19,13 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.nio.charset.StandardCharsets;
+
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -48,6 +53,7 @@ class CommentControllerTest {
 
 
     private Post savedPost;
+    private Comment savedComment;
 
     @BeforeEach
     void setUp(){
@@ -103,6 +109,14 @@ class CommentControllerTest {
 
         savedPost = post1;
         postRepository.save(post1);
+
+        Comment comment1 = Comment.builder()
+                .user(user2)
+                .post(post1)
+                .content("첫번째 게시글의 첫번째 댓글입니다.")
+                .build();
+        savedComment = comment1;
+        commentRepository.save(comment1);
 
         Post post2 = Post.builder()
                 .user(user1)
@@ -174,6 +188,69 @@ class CommentControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonRequest))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @DisplayName("로그인 X, 댓글 수정")
+    void updateComment_notLogin() throws Exception{
+        AddCommentRequest addCommentRequest = AddCommentRequest.builder()
+                .content("user1의 첫번째 게시글에 다는 첫번째 댓글의 수정본입니다.")
+                .build();
+
+        String jsonRequest = objectMapper.writeValueAsString(addCommentRequest);
+
+        mockMvc.perform(post(("/api/comments/") + savedComment.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonRequest))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("로그인 O, 본인 댓글 수정")
+    @WithMockUser(username = "testUser2")
+    void updateComment_login_self() throws Exception{
+        AddCommentRequest addCommentRequest = AddCommentRequest.builder()
+                .content("user1의 첫번째 게시글에 다는 첫번째 댓글의 수정본입니다.")
+                .build();
+
+        String jsonRequest = objectMapper.writeValueAsString(addCommentRequest);
+
+        MvcResult result = mockMvc.perform(put(("/api/comments/") + savedComment.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonRequest))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content").value("user1의 첫번째 게시글에 다는 첫번째 댓글의 수정본입니다."))
+                .andReturn();
+
+        System.out.println(pretty(result));
+    }
+
+    @Test
+    @DisplayName("로그인 O, 타인의 댓글 수정")
+    @WithMockUser(username = "testUser")
+    void updateComment_login_notSelf() throws Exception{
+        AddCommentRequest addCommentRequest = AddCommentRequest.builder()
+                .content("user1의 첫번째 게시글에 다는 첫번째 댓글의 수정본입니다.")
+                .build();
+
+        String jsonRequest = objectMapper.writeValueAsString(addCommentRequest);
+
+        MvcResult result = mockMvc.perform(put(("/api/comments/") + savedComment.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonRequest))
+                .andExpect(status().isForbidden())
+                .andReturn();
+
+        System.out.println(pretty(result));
+    }
+
+
+
+    private String pretty(MvcResult result) throws Exception {
+        String rawJsonResponse = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
+
+        Object jsonObject = objectMapper.readValue(rawJsonResponse, Object.class);
+        return objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(jsonObject);
     }
 
 }

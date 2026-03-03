@@ -7,7 +7,9 @@ import com.blog.backend.domain.repository.CommentRepository;
 import com.blog.backend.domain.repository.PostRepository;
 import com.blog.backend.domain.repository.UserRepository;
 import com.blog.backend.dto.AddCommentRequest;
-import com.blog.backend.dto.AddCommentResponse;
+import com.blog.backend.dto.CommentResponse;
+import com.blog.backend.exception.AuthorOnlyException;
+import com.blog.backend.exception.CommentNotFoundException;
 import com.blog.backend.exception.PostNotFoundException;
 import com.blog.backend.exception.UserNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +25,7 @@ public class CommentService {
     private final CommentRepository commentRepository;
 
     @Transactional
-    public AddCommentResponse addComment(AddCommentRequest addCommentRequest, Long postId, String username) {
+    public CommentResponse addComment(AddCommentRequest addCommentRequest, Long postId, String username) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(()-> new UserNotFoundException(username));
         Post post = postRepository.findById(postId)
@@ -36,10 +38,31 @@ public class CommentService {
 
         commentRepository.save(comment);
 
-        return AddCommentResponse.builder()
+        return CommentResponse.builder()
+                .commentId(comment.getId())
                 .postId(post.getId())
                 .author(username)
                 .content(comment.getContent())
+                .build();
+    }
+
+    @Transactional
+    public CommentResponse updateComment(Long commentId, AddCommentRequest addCommentRequest, String username) {
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(()->new CommentNotFoundException(commentId));
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(()-> new UserNotFoundException(username));
+
+        if(!comment.getUser().getId().equals(user.getId())){
+            throw new AuthorOnlyException(comment.getUser().getId());
+        }
+
+        comment.updateComment(addCommentRequest);
+        return CommentResponse.builder()
+                .author(comment.getUser().getUsername())
+                .commentId(comment.getId())
+                .content(comment.getContent())
+                .postId(comment.getPost().getId())
                 .build();
     }
 }

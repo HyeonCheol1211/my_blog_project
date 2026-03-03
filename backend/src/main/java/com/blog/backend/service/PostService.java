@@ -168,7 +168,7 @@ public class PostService {
         List<CommentResponse> commentsResponse = comments.stream()
                 .map(c->CommentResponse.builder()
                                 .commentId(c.getId())
-                                .userId(c.getUser().getId())
+                                .author(c.getUser().getUsername())
                                 .postId(c.getPost().getId())
                                 .content(c.getContent())
                                 .build()
