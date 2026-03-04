@@ -7,6 +7,7 @@ import com.blog.backend.domain.repository.CommentRepository;
 import com.blog.backend.domain.repository.PostRepository;
 import com.blog.backend.domain.repository.UserRepository;
 import com.blog.backend.dto.AddCommentRequest;
+import com.blog.backend.dto.CommentDetailResponse;
 import com.blog.backend.dto.CommentResponse;
 import com.blog.backend.exception.AuthorOnlyException;
 import com.blog.backend.exception.CommentNotFoundException;
@@ -15,6 +16,8 @@ import com.blog.backend.exception.UserNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -64,5 +67,44 @@ public class CommentService {
                 .content(comment.getContent())
                 .postId(comment.getPost().getId())
                 .build();
+    }
+
+    public CommentResponse deleteComment(Long commentId, String username) {
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(()->new CommentNotFoundException(commentId));
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(()-> new UserNotFoundException(username));
+
+        if(!comment.getUser().getId().equals(user.getId())){
+            throw new AuthorOnlyException(comment.getUser().getId());
+        }
+
+        CommentResponse commentResponse = CommentResponse.builder()
+                .commentId(commentId)
+                .author(comment.getUser().getUsername())
+                .content(comment.getContent())
+                .postId(comment.getPost().getId())
+                .build();
+
+        commentRepository.deleteById(commentId);
+
+        return commentResponse;
+    }
+
+    public List<CommentDetailResponse> getComments(String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UserNotFoundException(username));
+
+        List<Comment> comments = commentRepository.findAllByUser(user);
+        return comments.stream()
+                .map(c-> CommentDetailResponse.builder()
+                                .commentId(c.getId())
+                                .author(c.getUser().getUsername())
+                                .postId(c.getPost().getId())
+                                .postTitle(c.getPost().getTitle())
+                                .content(c.getContent())
+                                .build()
+                        )
+                .toList();
     }
 }

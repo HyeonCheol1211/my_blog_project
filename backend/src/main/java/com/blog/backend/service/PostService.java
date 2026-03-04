@@ -68,16 +68,18 @@ public class PostService {
         if(!user.equals(post.getUser())){
             throw new AuthorOnlyException(user.getId());
         }
+        postRepository.delete(post);
+
         Category category = post.getCategory();
         Long cnt = category.getCount();
+
         if(cnt<=1) {
             categoryRepository.delete(category);
         }
         if(cnt>1){
             category.decreaseCount();
         }
-        //글 삭제
-        postRepository.delete(post);
+
         return DeletePostResponse.builder()
                 .id(postId)
                 .message("성공적으로 삭제되었습니다.")

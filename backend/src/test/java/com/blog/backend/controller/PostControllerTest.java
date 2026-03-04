@@ -11,6 +11,7 @@ import com.blog.backend.domain.repository.UserRepository;
 import com.blog.backend.dto.AddPostRequest;
 import com.blog.backend.dto.UpdatePostRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -24,7 +25,9 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Optional;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -51,6 +54,9 @@ class PostControllerTest {
 
     @Autowired
     private CommentRepository commentRepository;
+
+    @Autowired
+    private EntityManager entityManager;
 
     private Post savedPost;
     private Post privatedPost;
@@ -108,6 +114,7 @@ class PostControllerTest {
                 .build();
         this.savedPost = post1;
         postRepository.save(post1);
+        category1.increaseCount();
 
         Comment comment1 = Comment.builder()
                 .post(post1)
@@ -125,6 +132,8 @@ class PostControllerTest {
                 .title("두번째 게시글")
                 .build();
         postRepository.save(post2);
+        category1.increaseCount();
+
 
 
         Post post3 = Post.builder()
@@ -136,6 +145,8 @@ class PostControllerTest {
                 .build();
         postRepository.save(post3);
         privatedPost = post3;
+        category3.increaseCount();
+
     }
 
     @Test
@@ -237,6 +248,12 @@ class PostControllerTest {
                 .andExpect(jsonPath("$.message").value("성공적으로 삭제되었습니다."))
                 .andExpect(jsonPath("$.id").value(savedPost.getId()))
                 .andReturn();
+
+        entityManager.flush();
+        entityManager.clear();
+
+        Optional<Post> deletedPost = postRepository.findById(savedPost.getId());
+        assertThat(deletedPost).isEmpty();
 
         System.out.println(pretty(result));
     }
@@ -418,7 +435,7 @@ class PostControllerTest {
         MvcResult result = mockMvc.perform(get("/api/posts/list")
                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(10))
+                .andExpect(jsonPath("$.length()").value(2))
                 .andReturn();
 
         System.out.println(pretty(result));

@@ -23,9 +23,10 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Optional;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -127,6 +128,19 @@ class CommentControllerTest {
                 .build();
         postRepository.save(post2);
 
+        Comment comment2 = Comment.builder()
+                .user(user2)
+                .post(post2)
+                .content("두번째 게시글의 첫번째 댓글입니다.")
+                .build();
+        commentRepository.save(comment2);
+
+        Comment comment3 = Comment.builder()
+                .user(user2)
+                .post(post2)
+                .content("두번째 게시글의 두번째 댓글입니다.")
+                .build();
+        commentRepository.save(comment3);
 
         Post post3 = Post.builder()
                 .user(user2)
@@ -244,7 +258,81 @@ class CommentControllerTest {
         System.out.println(pretty(result));
     }
 
+    @Test
+    @DisplayName("로그인 O, 본인 댓글 삭제")
+    @WithMockUser(username = "testUser2")
+    void deleteComment_login_self() throws Exception{
 
+
+        MvcResult result = mockMvc.perform(delete(("/api/comments/") + savedComment.getId())
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        Optional<Comment> deletedComment = commentRepository.findById(savedComment.getId());
+        assertThat(deletedComment).isEmpty();
+
+        System.out.println(pretty(result));
+    }
+
+    @Test
+    @DisplayName("로그인 x, 댓글 삭제")
+    void deleteComment_notLogin() throws Exception{
+
+
+        mockMvc.perform(delete(("/api/comments/") + savedComment.getId())
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isForbidden())
+                .andReturn();
+
+    }
+
+    @Test
+    @DisplayName("로그인 O, 타인 댓글 삭제")
+    @WithMockUser(username = "testUser")
+    void deleteComment_login_notSelf() throws Exception{
+
+        MvcResult result = mockMvc.perform(delete(("/api/comments/") + savedComment.getId())
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.message").value("작성자만 접근할 수 있습니다. (작성자 ID : " + savedComment.getUser().getId() + ")"))
+                .andReturn();
+        System.out.println(pretty(result));
+    }
+
+    @Test
+    @DisplayName("로그인 O, 댓글 X, 댓글조회")
+    @WithMockUser(username = "testUser")
+    void getComments_login_null() throws Exception {
+        MvcResult result = mockMvc.perform(get("/api/comments")
+                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(0))
+                .andReturn();
+
+        System.out.println(pretty(result));
+    }
+
+    @Test
+    @DisplayName("로그인 O, 댓글 O, 댓글조회")
+    @WithMockUser(username = "testUser2")
+    void getComments_login_notNull() throws Exception {
+        MvcResult result = mockMvc.perform(get("/api/comments")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(3))
+                .andReturn();
+
+        System.out.println(pretty(result));
+    }
+
+    @Test
+    @DisplayName("로그인 X, 댓글조회")
+    void getComments_notLogin() throws Exception {
+        mockMvc.perform(get("/api/comments")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isForbidden());
+    }
 
     private String pretty(MvcResult result) throws Exception {
         String rawJsonResponse = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
