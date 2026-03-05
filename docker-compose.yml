@@ -29,16 +29,3 @@ services:
       SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/blog_db?serverTimezone=UTC&characterEncoding=UTF-8
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: 1234
-
-  frontend:
-    build: ./frontend
-    container_name: blog-frontend-vue
-    ports:
-      - "5173:5173"
-    # 소스 코드 수정을 실시간으로 반영하기 위한 볼륨 설정 (개발 편의성)
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
-    depends_on:
-      backend:
-        condition: service_started
