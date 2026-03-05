@@ -3,6 +3,7 @@ package com.blog.backend.domain;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.OnDelete;
@@ -13,6 +14,8 @@ import java.time.LocalDateTime;
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
+@Getter
 @Table(name = "likes")
 public class Like {
     @Id
@@ -29,14 +32,7 @@ public class Like {
     @OnDelete(action = OnDeleteAction.CASCADE)
     private User user;
 
-    @Column(nullable = false)
-    private Long type;
 
     @CreationTimestamp
     private LocalDateTime createdAt;
-
-    @Builder
-    public Like(Long type){
-        this.type = type;
-    }
 }
