@@ -10,4 +10,4 @@ spring:
       ddl-auto: create-drop
 
 jwt:
-  secret: "test-secret-key-for-ci"
+  secret: "testsecretkeytestsecretkeytestsecretkey123"
