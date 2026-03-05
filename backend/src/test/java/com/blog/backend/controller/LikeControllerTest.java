@@ -151,8 +151,6 @@ class LikeControllerTest {
         System.out.println(pretty(result));
     }
 
-
-
     private String pretty(MvcResult result) throws Exception {
         String rawJsonResponse = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
 
