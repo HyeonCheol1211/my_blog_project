@@ -1,6 +1,8 @@
 package com.blog.backend.domain;
 
 import jakarta.persistence.*;
+import lombok.Builder;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.OnDelete;
@@ -11,6 +13,7 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "follows")
 @NoArgsConstructor
+@Getter
 public class Follow {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -28,5 +31,11 @@ public class Follow {
 
     @CreationTimestamp
     private LocalDateTime createdAt;
+
+    @Builder
+    public Follow(User user1, User user2){
+        this.user1 = user1;
+        this.user2 = user2;
+    }
 
 }
