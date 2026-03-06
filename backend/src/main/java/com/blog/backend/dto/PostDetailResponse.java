@@ -16,7 +16,8 @@ public record PostDetailResponse (
     LocalDateTime createdAt,
     LocalDateTime updatedAt,
     Long likeCount,
-    List<CommentResponse> commentsResponse
+    List<CommentResponse> commentsResponse,
+    boolean isLiked
 )
     {
 }

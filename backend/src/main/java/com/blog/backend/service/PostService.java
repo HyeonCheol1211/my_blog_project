@@ -172,7 +172,12 @@ public class PostService {
 
         List<Comment> comments = commentRepository.findAllByPost(post);
         Long likeCount = likeRepository.countByPost(post);
-
+        boolean isLiked = false;
+        if(username != null){
+            User user = userRepository.findByUsername(username)
+                            .orElseThrow(()-> new UserNotFoundException(username));
+            isLiked = likeRepository.existsByUserAndPost(user, post);
+        }
         List<CommentResponse> commentsResponse = comments.stream()
                 .map(c->CommentResponse.builder()
                                 .commentId(c.getId())
@@ -192,6 +197,7 @@ public class PostService {
                 .updatedAt(post.getUpdatedAt())
                 .likeCount(likeCount)
                 .commentsResponse(commentsResponse)
+                .isLiked(isLiked)
                 .build();
     }
 
