@@ -10,10 +10,12 @@ import java.util.Optional;
 
 @Repository
 public interface LikeRepository extends JpaRepository<Like, Long> {
-    public void deleteByPost(Post post);
+    void deleteByPost(Post post);
 
-    public Long countById(Long id);
+    Long countById(Long id);
 
-    public Long countByPost(Post post);
-    public Optional<Like> findByUserAndPost(User user, Post post);
+    Long countByPost(Post post);
+    Optional<Like> findByUserAndPost(User user, Post post);
+
+    boolean existsByUserAndPost(User user, Post post);
 }
