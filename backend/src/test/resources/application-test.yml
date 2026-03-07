@@ -11,3 +11,6 @@ spring:
 
 jwt:
   secret: "testsecretkeytestsecretkeytestsecretkey123"
+
+file:
+  dir : ./test_uploads/

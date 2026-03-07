@@ -34,7 +34,13 @@ public class SecurityConfig {
                 )
 
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/users/join", "/api/users/login", "/api/posts/list", "/api/posts/{postId}").permitAll()
+                        .requestMatchers("/api/users/join").permitAll()
+                        .requestMatchers("/api/users/login").permitAll()
+                        .requestMatchers("/api/posts/list").permitAll()
+                        .requestMatchers("/api/posts/{postId}").permitAll()
+                        .requestMatchers("/api/users/{userId}").permitAll()
+                        .requestMatchers("/images/**").permitAll()
+                        .requestMatchers("/error").permitAll()
                         .anyRequest().authenticated()
                 )
 
