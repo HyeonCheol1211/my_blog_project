@@ -32,6 +32,15 @@ public class UserService {
 
     @Transactional
     public UserResponse join(UserJoinRequest userJoinRequest, MultipartFile multipartFile){
+        userRepository.findByUsername(userJoinRequest.username())
+                .ifPresent(u->{
+                    throw new DuplicateUsernameException(u.getUsername());
+                });
+        userRepository.findByEmail(userJoinRequest.email())
+                .ifPresent(u->{
+                    throw new DuplicateEmailException(u.getEmail());
+                });
+
         String profileImage = imageValidate(multipartFile);
 
         User user = User.builder()
@@ -44,8 +53,8 @@ public class UserService {
                 .bio(userJoinRequest.bio())
                 .build();
 
-        validateDuplicateUser(user);
         userRepository.save(user);
+
         return UserResponse.builder()
                 .username(user.getUsername())
                 .email(user.getEmail())
@@ -61,18 +70,6 @@ public class UserService {
         }
 
         return jwtUtil.createToken(username);
-    }
-
-    private void validateDuplicateUser(User user) {
-        userRepository.findByUsername(user.getUsername())
-                .ifPresent(u->{
-                    throw new DuplicateUsernameException(u.getUsername());
-                });
-        userRepository.findByEmail(user.getEmail())
-                .ifPresent(u->{
-                    throw new DuplicateEmailException(u.getEmail());
-                });
-
     }
 
     public ProfileResponse getProfile(Long userId) {
@@ -99,6 +96,11 @@ public class UserService {
             String savedFilename = UUID.randomUUID().toString() + extension;
 
             String fullPath = fileDir + savedFilename;
+
+            File folder = new File(fileDir);
+            if(!folder.exists()){
+                folder.mkdirs();
+            }
             try {
                 multipartFile.transferTo(new File(fullPath));
             } catch (IOException e) {

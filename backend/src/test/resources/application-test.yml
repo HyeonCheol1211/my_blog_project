@@ -13,4 +13,4 @@ jwt:
   secret: "testsecretkeytestsecretkeytestsecretkey123"
 
 file:
-  dir : /User/dddd
+  dir : ./test_uploads/
