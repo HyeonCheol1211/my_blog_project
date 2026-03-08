@@ -6,10 +6,14 @@ import com.blog.backend.domain.repository.FollowRepository;
 import com.blog.backend.domain.repository.UserRepository;
 import com.blog.backend.dto.AddFollowRequest;
 import com.blog.backend.dto.FollowResponse;
+import com.blog.backend.dto.FollowerResponse;
+import com.blog.backend.dto.FollowingResponse;
 import com.blog.backend.exception.UserNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -36,9 +40,9 @@ public class FollowService {
                             .user1(user1)
                             .user2(user2)
                             .build();
-
-                    followRepository.save(follow);
-
+                    if(!user1.getId().equals(user2.getId())) {
+                        followRepository.save(follow);
+                    }
                     return FollowResponse.builder()
                             .username1(user1.getUsername())
                             .username2(user2.getUsername())
@@ -71,5 +75,31 @@ public class FollowService {
                             .username2(user2.getUsername())
                             .build()
                 );
+    }
+
+    public List<FollowerResponse> getFollowerList(String username) {
+        User user2 = userRepository.findByUsername(username)
+                .orElseThrow(()-> new UserNotFoundException(username));
+        return followRepository.findAllByUser2(user2)
+                .stream()
+                .map(follow -> FollowerResponse.builder()
+                        .profileImageUrl(follow.getUser1().getProfileImage())
+                        .username(follow.getUser1().getUsername())
+                        .build()
+                )
+                .toList();
+    }
+
+    public List<FollowingResponse> getFollowingList(String username) {
+        User user1 = userRepository.findByUsername(username)
+                .orElseThrow(()-> new UserNotFoundException(username));
+        return followRepository.findAllByUser1(user1)
+                .stream()
+                .map(follow -> FollowingResponse.builder()
+                        .profileImageUrl(follow.getUser2().getProfileImage())
+                        .username(follow.getUser2().getUsername())
+                        .build()
+                )
+                .toList();
     }
 }

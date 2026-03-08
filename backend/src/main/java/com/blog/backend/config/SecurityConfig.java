@@ -41,6 +41,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/users/{userId}").permitAll()
                         .requestMatchers("/images/**").permitAll()
                         .requestMatchers("/error").permitAll()
+                        .requestMatchers("/api/follows/{username}/followerList").permitAll()
+                        .requestMatchers("/api/follows/{username}/followingList").permitAll()
                         .anyRequest().authenticated()
                 )
 
