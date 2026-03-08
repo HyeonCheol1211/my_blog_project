@@ -11,6 +11,9 @@ public record ProfileResponse(
         String email,
         String bio,
         String profileImageUrl,
-        LocalDateTime createdAt
+        LocalDateTime createdAt,
+        Long followerCount,
+        Long followingCount,
+        Long postCount
 ) {
 }

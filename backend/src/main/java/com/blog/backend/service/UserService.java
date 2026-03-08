@@ -1,6 +1,8 @@
 package com.blog.backend.service;
 
 import com.blog.backend.domain.User;
+import com.blog.backend.domain.repository.FollowRepository;
+import com.blog.backend.domain.repository.PostRepository;
 import com.blog.backend.domain.repository.UserRepository;
 import com.blog.backend.dto.ProfileResponse;
 import com.blog.backend.dto.UserJoinRequest;
@@ -28,6 +30,9 @@ public class UserService {
     private String fileDir;
 
     private final UserRepository userRepository;
+    private final FollowRepository followRepository;
+    private final PostRepository postRepository;
+
     private final JwtUtil jwtUtil;
 
     @Transactional
@@ -72,9 +77,13 @@ public class UserService {
         return jwtUtil.createToken(username);
     }
 
-    public ProfileResponse getProfile(Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(()-> new UserNotFoundException("null"));
+    public ProfileResponse getProfile(String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(()-> new UserNotFoundException(username));
+
+        Long followingCount = followRepository.countByUser1(user);
+        Long followerCount = followRepository.countByUser2(user);
+        Long postCount = postRepository.countByUser(user);
         return ProfileResponse.builder()
                 .id(user.getId())
                 .username(user.getUsername())
@@ -82,6 +91,9 @@ public class UserService {
                 .bio(user.getBio())
                 .profileImageUrl(user.getProfileImage())
                 .createdAt(user.getCreatedAt())
+                .followerCount(followerCount)
+                .followingCount(followingCount)
+                .postCount(postCount)
                 .build();
     }
 

@@ -30,9 +30,9 @@ public class UserController {
         return ResponseEntity.ok().body(token);
     }
 
-    @GetMapping("/{userId}")
-    public ResponseEntity<ProfileResponse> getProfile(@PathVariable Long userId){
-        ProfileResponse profileResponse = userService.getProfile(userId);
+    @GetMapping("/profile/{username}")
+    public ResponseEntity<ProfileResponse> getProfile(@PathVariable String username){
+        ProfileResponse profileResponse = userService.getProfile(username);
         return ResponseEntity.ok(profileResponse);
     }
 }

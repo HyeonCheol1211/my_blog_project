@@ -157,6 +157,7 @@ public class PostService {
     public PostDetailResponse getPost(Long postId, String username) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(()-> new PostNotFoundException(postId));
+        User author = post.getUser();
 
         if(!post.isPublicStatus()){
             if(username==null){
@@ -198,6 +199,7 @@ public class PostService {
                 .likeCount(likeCount)
                 .commentsResponse(commentsResponse)
                 .isLiked(isLiked)
+                .profileImageUrl(author.getProfileImage())
                 .build();
     }
 
