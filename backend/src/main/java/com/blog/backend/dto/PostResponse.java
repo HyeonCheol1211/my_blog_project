@@ -14,7 +14,8 @@ public record PostResponse (
     boolean publicStatus,
     LocalDateTime createdAt,
     LocalDateTime updatedAt,
-    Long likeCount
+    Long likeCount,
+    String profileImageUrl
 )
 {
 }
