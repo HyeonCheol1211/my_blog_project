@@ -7,6 +7,7 @@ import com.blog.backend.dto.UserResponse;
 import com.blog.backend.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -30,9 +31,15 @@ public class UserController {
         return ResponseEntity.ok().body(token);
     }
 
-    @GetMapping("/profile/{username}")
-    public ResponseEntity<ProfileResponse> getProfile(@PathVariable String username){
-        ProfileResponse profileResponse = userService.getProfile(username);
+    @GetMapping("/profile/{username2}")
+    public ResponseEntity<ProfileResponse> getProfile(
+            @PathVariable String username2,
+            Authentication authentication){
+        String username1 = null;
+        if(authentication != null) {
+            username1 = authentication.getName();
+        }
+        ProfileResponse profileResponse = userService.getProfile(username1, username2);
         return ResponseEntity.ok(profileResponse);
     }
 }

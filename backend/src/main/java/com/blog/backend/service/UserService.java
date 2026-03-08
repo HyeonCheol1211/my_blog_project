@@ -77,23 +77,31 @@ public class UserService {
         return jwtUtil.createToken(username);
     }
 
-    public ProfileResponse getProfile(String username) {
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(()-> new UserNotFoundException(username));
+    public ProfileResponse getProfile(String username1, String username2) {
 
-        Long followingCount = followRepository.countByUser1(user);
-        Long followerCount = followRepository.countByUser2(user);
-        Long postCount = postRepository.countByUser(user);
+        User user2 = userRepository.findByUsername(username2)
+                .orElseThrow(()-> new UserNotFoundException(username2));
+
+        Long followingCount = followRepository.countByUser1(user2);
+        Long followerCount = followRepository.countByUser2(user2);
+        Long postCount = postRepository.countByUser(user2);
+        boolean isFollowing = false;
+        if(username1 != null) {
+            User user1 = userRepository.findByUsername(username1)
+                    .orElseThrow(()-> new UserNotFoundException(username1));
+            isFollowing =followRepository.existsByUser1AndUser2(user1, user2);
+        }
         return ProfileResponse.builder()
-                .id(user.getId())
-                .username(user.getUsername())
-                .email(user.getEmail())
-                .bio(user.getBio())
-                .profileImageUrl(user.getProfileImage())
-                .createdAt(user.getCreatedAt())
+                .id(user2.getId())
+                .username(user2.getUsername())
+                .email(user2.getEmail())
+                .bio(user2.getBio())
+                .profileImageUrl(user2.getProfileImage())
+                .createdAt(user2.getCreatedAt())
                 .followerCount(followerCount)
                 .followingCount(followingCount)
                 .postCount(postCount)
+                .isFollowing(isFollowing)
                 .build();
     }
 

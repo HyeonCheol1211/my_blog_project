@@ -12,4 +12,6 @@ public interface FollowRepository extends JpaRepository<Follow, Long> {
     Optional<Follow> findByUser1AndUser2(User user1, User user2);
     Long countByUser1(User user);
     Long countByUser2(User user);
+
+    boolean existsByUser1AndUser2(User user1, User user2);
 }

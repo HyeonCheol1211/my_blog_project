@@ -14,6 +14,7 @@ public record ProfileResponse(
         LocalDateTime createdAt,
         Long followerCount,
         Long followingCount,
-        Long postCount
+        Long postCount,
+        boolean isFollowing
 ) {
 }
