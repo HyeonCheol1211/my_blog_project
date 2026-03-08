@@ -17,7 +17,7 @@ public record PostDetailResponse (
     LocalDateTime updatedAt,
     Long likeCount,
     List<CommentResponse> commentsResponse,
-    boolean isLiked,
+    boolean liked,
     String profileImageUrl
 )
     {
