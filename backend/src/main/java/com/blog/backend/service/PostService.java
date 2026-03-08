@@ -206,6 +206,7 @@ public class PostService {
     public List<PostResponse> getPosts() {
         List<Post> posts =  postRepository.findAllByPublicStatusTrue();
 
+
         return posts.stream()
                 .map(p-> PostResponse.builder()
                         .id(p.getId())
@@ -217,6 +218,7 @@ public class PostService {
                         .createdAt(p.getCreatedAt())
                         .updatedAt(p.getUpdatedAt())
                         .likeCount(likeRepository.countByPost(p))
+                        .profileImageUrl(p.getUser().getProfileImage())
                         .build()
                 ).toList();
     }
