@@ -11,5 +11,10 @@ import java.util.List;
 public interface PostRepository extends JpaRepository<Post, Long> {
     List<Post> findAllByUser(User user);
     List<Post> findAllByPublicStatusTrue();
-    Long countByUser(User user);
+
+    List<Post> findAllByUserAndPublicStatus(User user, boolean publicStatus);
+
+    Long countByUserAndPublicStatus(User user2, boolean b);
+
+    Long countByUser(User targetUser);
 }

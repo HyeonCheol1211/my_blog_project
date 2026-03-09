@@ -19,13 +19,15 @@ public class PostController {
         this.postService = postService;
     }
 
-    @GetMapping("/my-list")
-    public ResponseEntity<List<PostResponse>> getMyPosts(Authentication authentication){
+    @GetMapping("{targetUsername}/list")
+    public ResponseEntity<List<PostResponse>> getUserPosts(
+            @PathVariable String targetUsername,
+            Authentication authentication){
         String username = null;
         if(authentication != null) {
             username = authentication.getName();
         }
-        List<PostResponse> getPostResponse = postService.getMyPosts(username);
+        List<PostResponse> getPostResponse = postService.getUserPosts(targetUsername, username);
         return ResponseEntity.ok(getPostResponse);
     }
 
