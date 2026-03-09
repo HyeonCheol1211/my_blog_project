@@ -7,6 +7,7 @@ import com.blog.backend.domain.repository.UserRepository;
 import com.blog.backend.dto.ProfileResponse;
 import com.blog.backend.dto.UserJoinRequest;
 import com.blog.backend.dto.UserResponse;
+import com.blog.backend.dto.UserUpdateRequest;
 import com.blog.backend.exception.DuplicateEmailException;
 import com.blog.backend.exception.DuplicateUsernameException;
 import com.blog.backend.exception.PasswordNotCorrectException;
@@ -20,6 +21,9 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.UUID;
 
 @Service
@@ -132,5 +136,55 @@ public class UserService {
         return null;
     }
 
+    @Transactional
+    public UserResponse updateProfile(UserUpdateRequest userUpdateRequest, MultipartFile multipartFile, String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(()-> new UserNotFoundException(username));
 
+        String password = userUpdateRequest.password();
+        String email = userUpdateRequest.email();
+        String bio = userUpdateRequest.bio();
+        String profileImage = null;
+        if(email != null) {
+            userRepository.findByEmail(userUpdateRequest.email())
+                    .ifPresent(u -> {
+                        if(!u.getId().equals(user.getId())) {
+                            throw new DuplicateEmailException(u.getEmail());
+                        }
+                    });
+            user.updateEmail(email);
+        }
+        if(password != null) {
+            user.updatePassword(password);
+        }
+
+        user.updateBio(bio);
+
+        if(multipartFile != null && !multipartFile.isEmpty()){
+            if(user.getProfileImage() != null && !user.getProfileImage().equals("/images/profiles/basic_profile_image.png")){
+                deleteOldProfileImage(user.getProfileImage());
+            }
+            profileImage = imageValidate(multipartFile);
+        }
+
+        if(profileImage != null){
+            user.updateProfileImage(profileImage);
+        }
+
+        return UserResponse.builder()
+                .username(user.getUsername())
+                .email(user.getEmail())
+                .build();
+
+    }
+
+    private void deleteOldProfileImage(String profileImage) {
+        try {
+            String fileName = profileImage.substring(profileImage.lastIndexOf("/") + 1);
+            Path filePath = Paths.get(fileDir + fileName);
+            Files.deleteIfExists(filePath);
+        } catch (IOException e) {
+            throw new RuntimeException("예전 프로필 사진 삭제 실패");
+        }
+    }
 }
