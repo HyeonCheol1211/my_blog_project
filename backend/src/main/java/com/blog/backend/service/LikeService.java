@@ -7,11 +7,14 @@ import com.blog.backend.domain.repository.LikeRepository;
 import com.blog.backend.domain.repository.PostRepository;
 import com.blog.backend.domain.repository.UserRepository;
 import com.blog.backend.dto.LikeResponse;
+import com.blog.backend.dto.LikeUserResponse;
 import com.blog.backend.exception.PostNotFoundException;
 import com.blog.backend.exception.UserNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -65,5 +68,19 @@ public class LikeService {
                 .username(username)
                 .build();
 
+    }
+
+    public List<LikeUserResponse> getLikeUserList(Long postId) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(()-> new PostNotFoundException(postId));
+
+        return likeRepository.findAllByPost(post)
+                .stream()
+                .map(like -> LikeUserResponse.builder()
+                                .profileImageUrl(like.getUser().getProfileImage())
+                                .username(like.getUser().getUsername())
+                                .build()
+                        )
+                .toList();
     }
 }

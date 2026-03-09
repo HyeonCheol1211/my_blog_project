@@ -43,6 +43,7 @@ public class SecurityConfig {
                         .requestMatchers("/error").permitAll()
                         .requestMatchers("/api/follows/{username}/followerList").permitAll()
                         .requestMatchers("/api/follows/{username}/followingList").permitAll()
+                        .requestMatchers("/api/likes/{postId}/list").permitAll()
                         .anyRequest().authenticated()
                 )
 
