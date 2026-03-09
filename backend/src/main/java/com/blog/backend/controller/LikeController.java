@@ -1,11 +1,14 @@
 package com.blog.backend.controller;
 
 import com.blog.backend.dto.LikeResponse;
+import com.blog.backend.dto.LikeUserResponse;
 import com.blog.backend.service.LikeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -32,6 +35,13 @@ public class LikeController {
         String username = authentication.getName();
         LikeResponse likeResponse = likeService.deleteLike(postId, username);
         return ResponseEntity.ok(likeResponse);
+    }
+
+    @GetMapping("/{postId}/list")
+    public ResponseEntity<List<LikeUserResponse>> getLikeUserList(
+            @PathVariable Long postId){
+        List<LikeUserResponse> likeUserResponses = likeService.getLikeUserList(postId);
+        return ResponseEntity.ok(likeUserResponses);
     }
 
 }
