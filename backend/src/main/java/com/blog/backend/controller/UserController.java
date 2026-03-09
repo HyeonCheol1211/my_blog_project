@@ -1,9 +1,6 @@
 package com.blog.backend.controller;
 
-import com.blog.backend.dto.ProfileResponse;
-import com.blog.backend.dto.UserJoinRequest;
-import com.blog.backend.dto.UserLoginRequest;
-import com.blog.backend.dto.UserResponse;
+import com.blog.backend.dto.*;
 import com.blog.backend.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -41,5 +38,15 @@ public class UserController {
         }
         ProfileResponse profileResponse = userService.getProfile(username1, username2);
         return ResponseEntity.ok(profileResponse);
+    }
+
+    @PutMapping("/profile")
+    public ResponseEntity<UserResponse> updateProfile(
+            @RequestPart(value="userUpdateRequest") UserUpdateRequest userUpdateRequest,
+            @RequestPart(value="profileImage", required = false) MultipartFile multipartFile,
+            Authentication authentication){
+        String username = authentication.getName();
+        UserResponse userResponse = userService.updateProfile(userUpdateRequest, multipartFile, username);
+        return ResponseEntity.ok(userResponse);
     }
 }
