@@ -39,8 +39,10 @@ public class LikeController {
 
     @GetMapping("/{postId}/list")
     public ResponseEntity<List<LikeUserResponse>> getLikeUserList(
-            @PathVariable Long postId){
-        List<LikeUserResponse> likeUserResponses = likeService.getLikeUserList(postId);
+            @PathVariable Long postId,
+            Authentication authentication){
+        String username = authentication.getName();
+        List<LikeUserResponse> likeUserResponses = likeService.getLikeUserList(postId, username);
         return ResponseEntity.ok(likeUserResponses);
     }
 
