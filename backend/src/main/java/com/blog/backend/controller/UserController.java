@@ -28,15 +28,15 @@ public class UserController {
         return ResponseEntity.ok().body(token);
     }
 
-    @GetMapping("/profile/{username2}")
+    @GetMapping("/profile/{targetUsername}")
     public ResponseEntity<ProfileResponse> getProfile(
-            @PathVariable String username2,
+            @PathVariable String targetUsername,
             Authentication authentication){
-        String username1 = null;
+        String username = null;
         if(authentication != null) {
-            username1 = authentication.getName();
+            username = authentication.getName();
         }
-        ProfileResponse profileResponse = userService.getProfile(username1, username2);
+        ProfileResponse profileResponse = userService.getProfile(targetUsername, username);
         return ResponseEntity.ok(profileResponse);
     }
 

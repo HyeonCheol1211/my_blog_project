@@ -154,8 +154,8 @@ class PostControllerTest {
     @Test
     @DisplayName("로그인 O, 내 게시글 목록 O")
     @WithMockUser(username = "testUser")
-    void getMyPosts_login_notNull() throws Exception{
-        MvcResult result = mockMvc.perform(get("/api/posts/my-list")
+    void getUserPosts_login_notNull() throws Exception{
+        MvcResult result = mockMvc.perform(get("/api/posts/testUser/list")
                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(2))
@@ -177,8 +177,8 @@ class PostControllerTest {
     @Test
     @DisplayName("로그인 O, 내 게시글 목록 X")
     @WithMockUser(username = "testUser3")
-    void getMyPosts_login_null() throws Exception{
-        MvcResult result = mockMvc.perform(get("/api/posts/my-list")
+    void getUserPosts_login_null() throws Exception{
+        MvcResult result = mockMvc.perform(get("/api/posts/testUser3/list")
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(0))
@@ -189,13 +189,12 @@ class PostControllerTest {
 
     @Test
     @DisplayName("로그인 X, 내 게시글 목록")
-    void getMyPosts_notLogin() throws Exception{
-        MvcResult result = mockMvc.perform(get("/api/posts/my-list")
+    void getUserPosts_notLogin() throws Exception{
+        mockMvc.perform(get("/api/posts/testUser/list")
                         .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isNotFound())
+                .andExpect(status().isForbidden())
                 .andReturn();
 
-        System.out.println(pretty(result));
     }
 
     @Test

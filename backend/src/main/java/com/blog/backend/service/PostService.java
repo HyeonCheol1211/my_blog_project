@@ -86,10 +86,16 @@ public class PostService {
                 .build();
     }
 
-    public List<PostResponse> getMyPosts(String username){
-        User user = userRepository.findByUsername(username)
-                        .orElseThrow(()->new UserNotFoundException(username));
-        List<Post> posts =  postRepository.findAllByUser(user);
+    public List<PostResponse> getUserPosts(String targetUsername, String username){
+        User user = userRepository.findByUsername(targetUsername)
+                        .orElseThrow(()->new UserNotFoundException(targetUsername));
+        List<Post> posts = null;
+        if(targetUsername.equals(username)) {
+            posts = postRepository.findAllByUser(user);
+        }
+        if(!targetUsername.equals(username)){
+            posts = postRepository.findAllByUserAndPublicStatus(user, true);
+        }
         return posts.stream()
                 .map(p-> PostResponse.builder()
                         .id(p.getId())

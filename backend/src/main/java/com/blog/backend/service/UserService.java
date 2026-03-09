@@ -81,27 +81,33 @@ public class UserService {
         return jwtUtil.createToken(username);
     }
 
-    public ProfileResponse getProfile(String username1, String username2) {
+    public ProfileResponse getProfile(String targetUsername, String username) {
 
-        User user2 = userRepository.findByUsername(username2)
-                .orElseThrow(()-> new UserNotFoundException(username2));
+        User targetUser = userRepository.findByUsername(targetUsername)
+                .orElseThrow(()-> new UserNotFoundException(targetUsername));
 
-        Long followingCount = followRepository.countByUser1(user2);
-        Long followerCount = followRepository.countByUser2(user2);
-        Long postCount = postRepository.countByUser(user2);
+        Long followingCount = followRepository.countByUser1(targetUser);
+        Long followerCount = followRepository.countByUser2(targetUser);
+        Long postCount = 0L;
+        if(!targetUsername.equals(username)) {
+            postCount = postRepository.countByUserAndPublicStatus(targetUser, true);
+        }
+        if(targetUsername.equals(username)){
+            postCount = postRepository.countByUser(targetUser);
+        }
         boolean isFollowing = false;
-        if(username1 != null) {
-            User user1 = userRepository.findByUsername(username1)
-                    .orElseThrow(()-> new UserNotFoundException(username1));
-            isFollowing =followRepository.existsByUser1AndUser2(user1, user2);
+        if(username != null) {
+            User user = userRepository.findByUsername(username)
+                    .orElseThrow(()-> new UserNotFoundException(username));
+            isFollowing =followRepository.existsByUser1AndUser2(user, targetUser);
         }
         return ProfileResponse.builder()
-                .id(user2.getId())
-                .username(user2.getUsername())
-                .email(user2.getEmail())
-                .bio(user2.getBio())
-                .profileImageUrl(user2.getProfileImage())
-                .createdAt(user2.getCreatedAt())
+                .id(targetUser.getId())
+                .username(targetUser.getUsername())
+                .email(targetUser.getEmail())
+                .bio(targetUser.getBio())
+                .profileImageUrl(targetUser.getProfileImage())
+                .createdAt(targetUser.getCreatedAt())
                 .followerCount(followerCount)
                 .followingCount(followingCount)
                 .postCount(postCount)
