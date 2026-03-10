@@ -38,4 +38,27 @@ public class Follow {
         this.following = following;
     }
 
+    public Long getFollowerId() {
+        return follower.getId();
+    }
+
+    public String getFollowerProfileImage() {
+        return follower.getProfileImage();
+    }
+
+    public String getFollowerUsername() {
+        return follower.getUsername();
+    }
+
+    public Long getFollowingId() {
+        return following.getId();
+    }
+
+    public String getFollowingProfileImage() {
+        return following.getProfileImage();
+    }
+
+    public String getFollowingUsername() {
+        return following.getUsername();
+    }
 }

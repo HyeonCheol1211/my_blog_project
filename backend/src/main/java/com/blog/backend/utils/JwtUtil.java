@@ -16,11 +16,11 @@ public class JwtUtil{
 
     private Long expiredMs = 1000 * 60 * 60L;
 
-    public String createToken(String username){
+    public String createToken(Long userId){
         Key key = Keys.hmacShaKeyFor(secretKey.getBytes());
 
         return Jwts.builder()
-                .setSubject(username)
+                .setSubject(userId)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + expiredMs))
                 .signWith(key, SignatureAlgorithm.HS256)

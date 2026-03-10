@@ -127,5 +127,31 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);
     }
 
+    @ExceptionHandler(AlreadyAddException.class)
+    public ResponseEntity<ErrorResponse> AlreadyDoneException(AlreadyAddException e){
+        System.out.println("409 에러 발생: " + e.getMessage());
+
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .status(HttpStatus.CONFLICT.value())
+                .error(HttpStatus.CONFLICT.name())
+                .message(e.getMessage())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
+    }
+
+    @ExceptionHandler(AlreadyDeleteException.class)
+    public ResponseEntity<ErrorResponse> AlreadyDeleteException(AlreadyDeleteException e){
+        System.out.println("204 에러 발생: " + e.getMessage());
+
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .status(HttpStatus.NO_CONTENT.value())
+                .error(HttpStatus.NO_CONTENT.name())
+                .message(e.getMessage())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).body(errorResponse);
+    }
+
 
 }

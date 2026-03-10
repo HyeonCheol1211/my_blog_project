@@ -40,11 +40,11 @@ public class UserController {
     public ResponseEntity<ProfileExtraResponse> getProfileExtra(
             @PathVariable Long userId,
             Authentication authentication) {
-        String username = null;
+        Long loginUserId = 0L;
         if (authentication != null) {
-            username = authentication.getName();
+            loginUserId = Long.parseLong(authentication.getName());
         }
-        ProfileExtraResponse profileExtraResponse = userService.getProfileExtra(userId, username);
+        ProfileExtraResponse profileExtraResponse = userService.getProfileExtra(userId, loginUserId);
         return ResponseEntity.ok(profileExtraResponse);
     }
 
@@ -53,8 +53,8 @@ public class UserController {
             @RequestPart(value = "userUpdateRequest") UserUpdateRequest userUpdateRequest,
             @RequestPart(value = "profileImage", required = false) MultipartFile multipartFile,
             Authentication authentication) {
-        String username = authentication.getName();
-        UserResponse userResponse = userService.updateProfile(userUpdateRequest, multipartFile, username);
+        Long userId = Long.parseLong(authentication.getName());
+        UserResponse userResponse = userService.updateProfile(userUpdateRequest, multipartFile, userId);
         return ResponseEntity.ok(userResponse);
     }
 
@@ -72,17 +72,15 @@ public class UserController {
         return ResponseEntity.ok(FollowerList);
     }
 
-
-
     @GetMapping("/{userId}/posts")
     public ResponseEntity<List<PostResponse>> getUserPosts(
             @PathVariable Long userId,
             Authentication authentication) {
-        String username = null;
+        Long loginUserId = 0L;
         if (authentication != null) {
-            username = authentication.getName();
+            loginUserId = Long.parseLong(authentication.getName());
         }
-        List<PostResponse> getPostResponse = userService.getUserPosts(userId, username);
+        List<PostResponse> getPostResponse = userService.getUserPosts(userId, loginUserId);
         return ResponseEntity.ok(getPostResponse);
     }
 }

@@ -60,7 +60,7 @@ public class UserService {
                 .email(userSignupRequest.email())
                 .password(encodedPassword)
                 .username(userSignupRequest.username())
-                .profileImage(profileImage)
+                .profileImage((profileImage==null) ? "/images/profiles/basic_profile_image.png" : profileImage)
                 .bio(userSignupRequest.bio())
                 .build();
 
@@ -81,44 +81,40 @@ public class UserService {
         if (!passwordEncoder.matches(password, selectedUser.getPassword())) {
             throw new PasswordNotCorrectException(password);
         }
+        Long userId = selectedUser.getId();
 
         return LoginResponse.builder()
-                .token(jwtUtil.createToken(username))
+                .token(jwtUtil.createToken(userId))
                 .userId(selectedUser.getId())
                 .build();
     }
 
     public ProfileBasicResponse getProfileBasic(Long userId) {
 
-        User targetUser = userRepository.findById(userId)
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException("User ID", userId.toString()));
 
-        Long followingCount = followRepository.countByFollower(targetUser);
-        Long followerCount = followRepository.countByFollowing(targetUser);
+        Long followingCount = followRepository.countByFollower(user);
+        Long followerCount = followRepository.countByFollowing(user);
         return ProfileBasicResponse.builder()
-                .id(targetUser.getId())
-                .username(targetUser.getUsername())
-                .email(targetUser.getEmail())
-                .bio(targetUser.getBio())
-                .profileImageUrl(targetUser.getProfileImage())
-                .createdAt(targetUser.getCreatedAt())
+                .id(user.getId())
+                .username(user.getUsername())
+                .email(user.getEmail())
+                .bio(user.getBio())
+                .profileImageUrl(user.getProfileImage())
+                .createdAt(user.getCreatedAt())
                 .followerCount(followerCount)
                 .followingCount(followingCount)
                 .build();
     }
 
-    public ProfileExtraResponse getProfileExtra(Long userId, String username) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException("User ID", userId.toString()));
-
+    public ProfileExtraResponse getProfileExtra(Long userId, Long loginUserId) {
         boolean isFollowing = false;
-        if (username != null) {
-            User loginUser = userRepository.findByUsername(username)
-                    .orElseThrow(() -> new UserNotFoundException("Username", username));
-            isFollowing = followRepository.existsByFollowerAndFollowing(loginUser, user);
+        if (loginUserId != 0L) {
+            isFollowing = followRepository.existsByFollower_IdAndFollowing_Id(loginUserId, userId);
         }
-        Long postAllCount = postRepository.countByUser(user);
-        Long postPublicCount = postRepository.countByUserAndPublicStatus(user, true);
+        Long postAllCount = postRepository.countByUser_Id(userId);
+        Long postPublicCount = postRepository.countByUser_IdAndPublicStatus(userId, true);
 
         return ProfileExtraResponse.builder()
                 .isFollowing(isFollowing)
@@ -156,9 +152,9 @@ public class UserService {
 
     @Transactional
     public UserResponse updateProfile(UserUpdateRequest userUpdateRequest, MultipartFile multipartFile,
-            String username) {
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new UserNotFoundException("Username", username));
+            Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("User ID", userId.toString()));
 
         String password = userUpdateRequest.password();
         String encodedPassword = passwordEncoder.encode(password);
@@ -210,55 +206,45 @@ public class UserService {
     }
 
     public List<FollowerResponse> getFollowers(Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException("User ID", userId.toString()));
-        return followRepository.findAllByFollowing(user)
+        return followRepository.findAllByFollowing_Id(userId)
                 .stream()
                 .map(follow -> FollowerResponse.builder()
-                        .followerId(follow.getFollower().getId())
-                        .profileImageUrl(follow.getFollower().getProfileImage())
-                        .username(follow.getFollower().getUsername())
+                        .followerId(follow.getFollowerId())
+                        .profileImageUrl(follow.getFollowerProfileImage())
+                        .username(follow.getFollowerUsername())
                         .build())
                 .toList();
     }
 
     public List<FollowingResponse> getFollowings(Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException("User ID", userId.toString()));
-        return followRepository.findAllByfollower(user)
+        return followRepository.findAllByFollower_Id(userId)
                 .stream()
                 .map(follow -> FollowingResponse.builder()
-                        .followingId(follow.getFollowing().getId())
-                        .profileImageUrl(follow.getFollowing().getProfileImage())
-                        .username(follow.getFollowing().getUsername())
+                        .followingId(follow.getFollowingId())
+                        .profileImageUrl(follow.getFollowingProfileImage())
+                        .username(follow.getFollowingUsername())
                         .build())
                 .toList();
     }
 
-    public List<PostResponse> getUserPosts(Long userId, String username){
-        User user = userRepository.findById(userId)
-                .orElseThrow(()->new UserNotFoundException("User ID", userId.toString()));
-
-        List<Post> posts;
-        if (username != null) {
-            User loginUser = userRepository.findByUsername(username)
-                    .orElseThrow(()->new UserNotFoundException("Username", username));
-            if(user.getId().equals(loginUser.getId())) {
-                posts = postRepository.findAllByUser(user);
-            } else {
-                posts = postRepository.findAllByUserAndPublicStatus(user, true);
-            }
-        } else {
-            posts = postRepository.findAllByUserAndPublicStatus(user, true);
+    public List<PostResponse> getUserPosts(Long userId, Long loginUserId){
+        List<Post> posts = List.of();
+        if(loginUserId != 0L && userId.equals(loginUserId)) {
+            posts = postRepository.findAllByUser_Id(userId);
         }
+        
+        if(loginUserId == 0L || !userId.equals(loginUserId)){
+            posts = postRepository.findAllByUser_IdAndPublicStatus(userId, true);
+        }
+        
         return posts.stream()
                 .map(p-> PostResponse.builder()
                         .id(p.getId())
                         .title(p.getTitle())
                         .content(p.getContent())
-                        .authorId(p.getUser().getId())
-                        .author(p.getUser().getUsername())
-                        .categoryName(p.getCategory().getName())
+                        .authorId(p.getUserId())
+                        .author(p.getUsername())
+                        .categoryName(p.getCategoryName())
                         .publicStatus(p.isPublicStatus())
                         .createdAt(p.getCreatedAt())
                         .updatedAt(p.getUpdatedAt())

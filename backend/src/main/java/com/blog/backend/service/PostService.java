@@ -1,15 +1,9 @@
 package com.blog.backend.service;
 
-import com.blog.backend.domain.Category;
-import com.blog.backend.domain.Comment;
-import com.blog.backend.domain.Post;
-import com.blog.backend.domain.User;
+import com.blog.backend.domain.*;
 import com.blog.backend.domain.repository.*;
 import com.blog.backend.dto.*;
-import com.blog.backend.exception.AuthorOnlyException;
-import com.blog.backend.exception.LoginUserNotMatchException;
-import com.blog.backend.exception.PostNotFoundException;
-import com.blog.backend.exception.UserNotFoundException;
+import com.blog.backend.exception.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,11 +21,11 @@ public class PostService {
     private final CommentRepository commentRepository;
 
     @Transactional
-    public PostResponse addPost(AddPostRequest addPostRequest, String username){
+    public PostResponse addPost(AddPostRequest addPostRequest, Long userId){
         String categoryName = addPostRequest.categoryName();
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(()->new UserNotFoundException("Username", username));
-        Category category = categoryRepository.findByNameAndUser(categoryName, user)
+        User user = userRepository.findById(userId)
+                .orElseThrow(()->new UserNotFoundException("User ID", userId.toString()));
+        Category category = categoryRepository.findByNameAndUser_Id(categoryName, userId)
                 .orElseGet(()->addCategory(user, categoryName));
         Post post = Post.builder()
                 .user(user)
@@ -47,9 +41,9 @@ public class PostService {
                 .id(post.getId())
                 .title(post.getTitle())
                 .content(post.getContent())
-                .authorId(post.getUser().getId())
-                .author(post.getUser().getUsername())
-                .categoryName(post.getCategory().getName())
+                .authorId(post.getUserId())
+                .author(post.getUsername())
+                .categoryName(post.getCategoryName())
                 .publicStatus(post.isPublicStatus())
                 .createdAt(post.getCreatedAt())
                 .updatedAt(post.getUpdatedAt())
@@ -66,14 +60,14 @@ public class PostService {
     }
 
     @Transactional
-    public DeletePostResponse deletePost(Long postId, String username){
+    public void deletePost(Long postId, Long userId){
         Post post = postRepository.findById(postId)
                 .orElseThrow(()-> new PostNotFoundException(postId));
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(()-> new UserNotFoundException("Username", username));
+        User user = userRepository.findById(userId)
+                .orElseThrow(()-> new UserNotFoundException("User ID", userId.toString()));
 
-        if(!user.getId().equals(post.getUser().getId())){
-            throw new AuthorOnlyException(post.getUser().getId());
+        if(!user.getId().equals(post.getUserId())){
+            throw new AuthorOnlyException(post.getUserId());
         }
 
         postRepository.delete(post);
@@ -87,34 +81,29 @@ public class PostService {
         if(cnt>1){
             category.decreaseCount();
         }
-
-        return DeletePostResponse.builder()
-                .id(postId)
-                .message("성공적으로 삭제되었습니다.")
-                .build();
     }
 
 
 
     @Transactional
-    public PostResponse updatePost(Long postId, UpdatePostRequest updatePostRequest, String username) {
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(()->new UserNotFoundException("Username", username));
+    public PostResponse updatePost(Long postId, UpdatePostRequest updatePostRequest, Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(()->new UserNotFoundException("User ID", userId.toString()));
 
         Post post = postRepository.findById(postId)
                 .orElseThrow(()->new PostNotFoundException(postId));
 
-        if(!user.getId().equals(post.getUser().getId())){
-            throw new AuthorOnlyException(post.getUser().getId());
+        if(!userId.equals(post.getUserId())){
+            throw new AuthorOnlyException(post.getUserId());
         }
 
         String title = updatePostRequest.title();
         String content = updatePostRequest.content();
         String categoryName = updatePostRequest.categoryName();
-        Boolean publicStatus = updatePostRequest.publicStatus();
+        boolean publicStatus = updatePostRequest.publicStatus();
         Category category = post.getCategory();
         //카테고리가 바뀐 경우 따져줘야함
-        if(!post.getCategory().getName().equals(categoryName)) {//바뀜
+        if(!post.getCategoryName().equals(categoryName)) {//바뀜
             category = categoryRepository.findByNameAndUser(updatePostRequest.categoryName(), user)
                     .orElseGet(() -> addCategory(user, categoryName));
             post.getCategory().decreaseCount();
@@ -131,29 +120,29 @@ public class PostService {
 
         return PostResponse.builder()
                 .id(post.getId())
-                .title(post.getTitle())
-                .content(post.getContent())
-                .authorId(post.getUser().getId())
-                .author(post.getUser().getUsername())
-                .categoryName(post.getCategory().getName())
-                .publicStatus(post.isPublicStatus())
+                .title(title)
+                .content(content)
+                .authorId(userId)
+                .author(user.getUsername())
+                .categoryName(category.getName())
+                .publicStatus(publicStatus)
                 .createdAt(post.getCreatedAt())
                 .updatedAt(post.getUpdatedAt())
                 .likeCount(likeCount)
                 .build();
     }
 
-    public PostDetailResponse getPost(Long postId, String username) {
+    public PostDetailResponse getPost(Long postId, Long userId) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(()-> new PostNotFoundException(postId));
         User author = post.getUser();
 
-        if(canGetPost(post, username)){
+        if(canGetPost(post, userId)){
             Long likeCount = likeRepository.countByPost(post);
             boolean liked = false;
-            if(username != null){
-                User user = userRepository.findByUsername(username)
-                        .orElseThrow(()-> new UserNotFoundException("Username", username));
+            if(userId != 0L){
+                User user = userRepository.findById(userId)
+                        .orElseThrow(()-> new UserNotFoundException("User ID", userId.toString()));
                 liked = likeRepository.existsByUserAndPost(user, post);
             }
 
@@ -161,9 +150,9 @@ public class PostService {
                     .id(post.getId())
                     .title(post.getTitle())
                     .content(post.getContent())
-                    .authorId(post.getUser().getId())
-                    .author(post.getUser().getUsername())
-                    .categoryName(post.getCategory().getName())
+                    .authorId(post.getUserId())
+                    .author(post.getUsername())
+                    .categoryName(post.getCategoryName())
                     .publicStatus(post.isPublicStatus())
                     .createdAt(post.getCreatedAt())
                     .updatedAt(post.getUpdatedAt())
@@ -173,23 +162,19 @@ public class PostService {
                     .build();
         }
 
-        throw new AuthorOnlyException(post.getUser().getId());
+        throw new AuthorOnlyException(post.getUserId());
 
     }
 
-    private boolean canGetPost(Post post,  String username) {
+    private boolean canGetPost(Post post,  Long userId) {
         if(post.isPublicStatus()){
             return true;
         }
-        if(username==null){
+        if(userId == 0L){
             return false;
         }
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(()-> new UserNotFoundException("Username", username));
-        if(!user.getId().equals(post.getUser().getId())){
-            return false;
-        }
-        return true;
+
+        return userId.equals(post.getUserId());
     }
 
     public List<PostResponse> getPosts() {
@@ -200,52 +185,96 @@ public class PostService {
                         .id(p.getId())
                         .title(p.getTitle())
                         .content(p.getContent())
-                        .authorId(p.getUser().getId())
-                        .author(p.getUser().getUsername())
-                        .categoryName(p.getCategory().getName())
+                        .authorId(p.getUserId())
+                        .author(p.getUsername())
+                        .categoryName(p.getCategoryName())
                         .publicStatus(p.isPublicStatus())
                         .createdAt(p.getCreatedAt())
                         .updatedAt(p.getUpdatedAt())
                         .likeCount(likeRepository.countByPost(p))
-                        .profileImageUrl(p.getUser().getProfileImage())
+                        .profileImageUrl(p.getProfileImage())
                         .build()
                 ).toList();
     }
 
-    public List<LikeUserResponse> getLikeUserList(Long postId, String username) {
+    public List<LikeUserResponse> getLikeUserList(Long postId, Long userId) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new PostNotFoundException(postId));
 
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new UserNotFoundException("Username", username));
-
-        if (!post.getUser().getId().equals(user.getId())) {
-            throw new LoginUserNotMatchException(post.getUser().getId(), user.getId());
+        if (!post.getUserId().equals(userId)) {
+            throw new LoginUserNotMatchException(post.getUserId(), userId);
         }
 
         return likeRepository.findAllByPost(post)
                 .stream()
                 .map(like -> LikeUserResponse.builder()
-                        .userId(like.getUser().getId())
-                        .profileImageUrl(like.getUser().getProfileImage())
-                        .username(like.getUser().getUsername())
+                        .userId(like.getUserId())
+                        .profileImageUrl(like.getProfileImage())
+                        .username(like.getUsername())
                         .build())
                 .toList();
     }
 
     public List<CommentResponse> getPostComments(Long postId) {
-        Post post = postRepository.findById(postId)
-                .orElseThrow(()-> new PostNotFoundException(postId));
-
-        List<Comment> comments = commentRepository.findByPost(post);
+        List<Comment> comments = commentRepository.findAllByPost_Id(postId);
 
         return comments.stream()
                 .map(c->CommentResponse.builder()
                         .commentId(c.getId())
-                        .author(c.getUser().getUsername())
-                        .postId(c.getPost().getId())
+                        .author(c.getUsername())
+                        .postId(c.getPostId())
                         .content(c.getContent())
                         .build()
                 ).toList();
+    }
+
+    @Transactional
+    public CommentResponse addComment(Long postId, AddCommentRequest addCommentRequest, Long userId) {
+        String content = addCommentRequest.content();
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(()-> new UserNotFoundException("User ID", userId.toString()));
+
+        Post post = postRepository.findById(postId)
+                .orElseThrow(()-> new PostNotFoundException(postId));
+
+        Comment comment = Comment.builder()
+                .user(user)
+                .post(post)
+                .content(content)
+                .build();
+
+        commentRepository.save(comment);
+
+        return CommentResponse.builder()
+                .commentId(comment.getId())
+                .postId(postId)
+                .author(user.getUsername())
+                .content(content)
+                .build();
+    }
+
+    @Transactional
+    public LikeResponse addLike(Long postId, Long userId) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(()-> new PostNotFoundException(postId));
+        User user = userRepository.findById(userId)
+                .orElseThrow(()-> new UserNotFoundException("User ID", userId.toString()));
+
+        if(postRepository.existsIdAndUser_Id(postId, userId)){
+            throw new AlreadyAddException();
+        }
+
+        Like like = Like.builder()
+                .post(post)
+                .user(user)
+                .build();
+
+        likeRepository.save(like);
+
+        return LikeResponse.builder()
+                .userId(userId)
+                .postId(postId)
+                .build();
     }
 }

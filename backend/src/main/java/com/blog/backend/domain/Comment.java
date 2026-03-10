@@ -49,4 +49,20 @@ public class Comment {
         this.content = content;
     }
 
+    public Long getUserId(){
+        return user.getId();
+    }
+
+    public String getUsername(){
+        return user.getUsername();
+    }
+
+    public Long getPostId(){
+        return post.getId();
+    }
+
+    public String getPostTitle(){
+        return post.getTitle();
+    }
+
 }

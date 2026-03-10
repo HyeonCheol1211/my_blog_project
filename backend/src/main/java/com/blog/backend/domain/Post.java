@@ -55,4 +55,20 @@ public class Post {
         this.content = content;
         this.publicStatus = publicStatus;
     }
+
+    public Long getUserId(){
+        return user.getId();
+    }
+
+    public String getUsername(){
+        return user.getUsername();
+    }
+
+    public String getCategoryName(){
+        return category.getName();
+    }
+
+    public String getProfileImage(){
+        return user.getProfileImage();
+    }
 }

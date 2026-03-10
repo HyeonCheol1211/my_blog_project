@@ -35,4 +35,16 @@ public class Like {
 
     @CreationTimestamp
     private LocalDateTime createdAt;
+
+    public Long getUserId(){
+        return user.getId();
+    }
+
+    public String getProfileImage(){
+        return user.getProfileImage();
+    }
+
+    public String getUsername() {
+        return user.getUsername();
+    }
 }

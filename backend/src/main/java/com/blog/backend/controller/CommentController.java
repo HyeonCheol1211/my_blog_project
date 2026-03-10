@@ -1,6 +1,5 @@
 package com.blog.backend.controller;
 
-import com.blog.backend.dto.AddCommentRequest;
 import com.blog.backend.dto.CommentDetailResponse;
 import com.blog.backend.dto.CommentResponse;
 import com.blog.backend.dto.UpdateCommentRequest;
@@ -18,40 +17,30 @@ import java.util.List;
 public class CommentController {
     private final CommentService commentService;
 
-    @PostMapping("/{postId}")
-    public ResponseEntity<CommentResponse> addComment(
-            @PathVariable Long postId,
-            @RequestBody AddCommentRequest addCommentRequest,
-            Authentication authentication){
-        String username = authentication.getName();
-        CommentResponse commentResponse = commentService.addComment(postId, addCommentRequest, username);
-        return ResponseEntity.ok(commentResponse);
-    }
-
     @PutMapping("/{commentId}")
     public ResponseEntity<CommentResponse> updateComment(
             @PathVariable Long commentId,
             @RequestBody UpdateCommentRequest updateCommentRequest,
             Authentication authentication){
-        String username = authentication.getName();
-        CommentResponse commentResponse = commentService.updateComment(commentId, updateCommentRequest, username);
+        Long userId = Long.parseLong(authentication.getName());
+        CommentResponse commentResponse = commentService.updateComment(commentId, updateCommentRequest, userId);
         return ResponseEntity.ok(commentResponse);
     }
 
     @DeleteMapping("/{commentId}")
-    public ResponseEntity<CommentResponse> deleteComment(
+    public ResponseEntity<Void> deleteComment(
             @PathVariable Long commentId,
             Authentication authentication
     ){
-        String username = authentication.getName();
-        CommentResponse commentResponse = commentService.deleteComment(commentId, username);
-        return ResponseEntity.ok(commentResponse);
+        Long userId = Long.parseLong(authentication.getName());
+        commentService.deleteComment(commentId, userId);
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping
-    public ResponseEntity<List<CommentDetailResponse>> getComments(Authentication authentication){
-        String username = authentication.getName();
-        List<CommentDetailResponse> commentsDetailResponse = commentService.getComments(username);
+    public ResponseEntity<List<CommentDetailResponse>> getMyComments(Authentication authentication){
+        Long userId = Long.parseLong(authentication.getName());
+        List<CommentDetailResponse> commentsDetailResponse = commentService.getMyComments(userId);
         return ResponseEntity.ok(commentsDetailResponse);
     }
 

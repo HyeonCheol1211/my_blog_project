@@ -19,11 +19,9 @@ public class CategoryService {
     private final CategoryRepository categoryRepository;
     private final UserRepository userRepository;
 
-    public List<CategoryResponse> getCategoryList(String username) {
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(()-> new UserNotFoundException("Username", username));
+    public List<CategoryResponse> getCategoryList(Long userId) {
 
-        return categoryRepository.findAllByUser(user)
+        return categoryRepository.findAllByUser_Id(userId)
                 .stream()
                 .map(category -> CategoryResponse.builder()
                         .categoryName(category.getName())

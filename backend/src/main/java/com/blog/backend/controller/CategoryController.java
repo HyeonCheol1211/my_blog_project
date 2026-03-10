@@ -21,8 +21,8 @@ public class CategoryController {
     public ResponseEntity<List<CategoryResponse>> getCategoryList(
             Authentication authentication
     ){
-        String username = authentication.getName();
-        List<CategoryResponse> categoryResponses = categoryService.getCategoryList(username);
+        Long userId = Long.parseLong(authentication.getName());
+        List<CategoryResponse> categoryResponses = categoryService.getCategoryList(userId);
         return ResponseEntity.ok(categoryResponses);
     }
 }

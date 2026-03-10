@@ -15,21 +15,21 @@ import java.util.List;
 public class PostController {
     private final PostService postService;
 
-    @PostMapping("")
+    @PostMapping
     public ResponseEntity<PostResponse> addPost(
             @RequestBody AddPostRequest addPostRequest, Authentication authentication) {
-        String username = authentication.getName();
-        PostResponse postResponse = postService.addPost(addPostRequest, username);
+        Long userId = Long.parseLong(authentication.getName());
+        PostResponse postResponse = postService.addPost(addPostRequest, userId);
         return ResponseEntity.ok(postResponse);
     }
 
     @DeleteMapping("/{postId}")
-    public ResponseEntity<DeletePostResponse> deletePost(
+    public ResponseEntity<Void> deletePost(
             @PathVariable Long postId,
             Authentication authentication) {
-        String username = authentication.getName();
-        DeletePostResponse deletePostResponse = postService.deletePost(postId, username);
-        return ResponseEntity.ok(deletePostResponse);
+        Long userId = Long.parseLong(authentication.getName());
+        postService.deletePost(postId, userId);
+        return ResponseEntity.noContent().build();
     }
 
     @PutMapping("/{postId}")
@@ -37,8 +37,8 @@ public class PostController {
             @PathVariable Long postId,
             @RequestBody UpdatePostRequest updatePostRequest,
             Authentication authentication) {
-        String username = authentication.getName();
-        PostResponse postResponse = postService.updatePost(postId, updatePostRequest, username);
+        Long userId = Long.parseLong(authentication.getName());
+        PostResponse postResponse = postService.updatePost(postId, updatePostRequest, userId);
         return ResponseEntity.ok(postResponse);
     }
 
@@ -46,11 +46,11 @@ public class PostController {
     public ResponseEntity<PostDetailResponse> getPost(
             @PathVariable Long postId,
             Authentication authentication) {
-        String username = null;
+        Long userId = 0L;
         if (authentication != null) {
-            username = authentication.getName();
+            userId = Long.parseLong(authentication.getName());
         }
-        PostDetailResponse postDetailResponse = postService.getPost(postId, username);
+        PostDetailResponse postDetailResponse = postService.getPost(postId, userId);
         return ResponseEntity.ok(postDetailResponse);
     }
 
@@ -63,9 +63,10 @@ public class PostController {
     @GetMapping("/{postId}/likes")
     public ResponseEntity<List<LikeUserResponse>> getLikeUserList(
             @PathVariable Long postId,
-            Authentication authentication) {
-        String username = authentication.getName();
-        List<LikeUserResponse> likeUserResponses = postService.getLikeUserList(postId, username);
+            Authentication authentication
+    ) {
+        Long userId = Long.parseLong(authentication.getName());
+        List<LikeUserResponse> likeUserResponses = postService.getLikeUserList(postId, userId);
         return ResponseEntity.ok(likeUserResponses);
     }
 
@@ -73,5 +74,25 @@ public class PostController {
     public ResponseEntity<List<CommentResponse>> getPostComments(@PathVariable Long postId){
         List<CommentResponse> commentResponses = postService.getPostComments(postId);
         return ResponseEntity.ok(commentResponses);
+    }
+
+    @PostMapping("/{postId}/comment")
+    public ResponseEntity<CommentResponse> addComment(
+            @PathVariable Long postId,
+            @RequestBody AddCommentRequest addCommentRequest,
+            Authentication authentication){
+        Long userId = Long.parseLong(authentication.getName());
+        CommentResponse commentResponse = postService.addComment(postId, addCommentRequest, userId);
+        return ResponseEntity.ok(commentResponse);
+    }
+
+    @PostMapping("/{postId}/like")
+    public ResponseEntity<LikeResponse> addLike(
+            @PathVariable Long postId,
+            Authentication authentication
+    ){
+        Long userId = Long.parseLong(authentication.getName());
+        LikeResponse likeResponse = postService.addLike(postId, userId);
+        return ResponseEntity.ok(likeResponse);
     }
 }

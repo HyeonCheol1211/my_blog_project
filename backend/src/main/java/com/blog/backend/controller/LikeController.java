@@ -1,11 +1,13 @@
 package com.blog.backend.controller;
 
-import com.blog.backend.dto.LikeResponse;
 import com.blog.backend.service.LikeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
@@ -13,25 +15,14 @@ import org.springframework.web.bind.annotation.*;
 public class LikeController {
     private final LikeService likeService;
 
-
-    @PostMapping("/{postId}")
-    public ResponseEntity<LikeResponse> addLike(
-            @PathVariable Long postId,
-            Authentication authentication
-    ){
-        String username = authentication.getName();
-        LikeResponse likeResponse = likeService.addLike(postId, username);
-        return ResponseEntity.ok(likeResponse);
-    }
-
     @DeleteMapping("/{postId}")
-    public ResponseEntity<LikeResponse> deleteLike(
+    public ResponseEntity<Void> deleteLike(
             @PathVariable Long postId,
             Authentication authentication
     ){
-        String username = authentication.getName();
-        LikeResponse likeResponse = likeService.deleteLike(postId, username);
-        return ResponseEntity.ok(likeResponse);
+        Long userId = Long.parseLong(authentication.getName());
+        likeService.deleteLike(postId, userId);
+        return ResponseEntity.noContent().build();
     }
 
 }
