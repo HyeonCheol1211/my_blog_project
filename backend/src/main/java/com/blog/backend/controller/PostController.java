@@ -59,4 +59,19 @@ public class PostController {
         List<PostResponse> postsResponse = postService.getPosts();
         return ResponseEntity.ok(postsResponse);
     }
+
+    @GetMapping("/{postId}/likes")
+    public ResponseEntity<List<LikeUserResponse>> getLikeUserList(
+            @PathVariable Long postId,
+            Authentication authentication) {
+        String username = authentication.getName();
+        List<LikeUserResponse> likeUserResponses = postService.getLikeUserList(postId, username);
+        return ResponseEntity.ok(likeUserResponses);
+    }
+
+    @GetMapping("/{postId}/comments")
+    public ResponseEntity<List<CommentResponse>> getPostComments(@PathVariable Long postId){
+        List<CommentResponse> commentResponses = postService.getPostComments(postId);
+        return ResponseEntity.ok(commentResponses);
+    }
 }

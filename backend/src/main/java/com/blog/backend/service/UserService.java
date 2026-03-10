@@ -235,28 +235,6 @@ public class UserService {
                 .toList();
     }
 
-    public List<LikeUserResponse> getLikeUserList(Long postId, String username) {
-        Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new PostNotFoundException(postId));
-
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new UserNotFoundException("Username", username));
-
-        if (!post.getUser().getId().equals(user.getId())) {
-            throw new LoginUserNotMatchException(post.getUser().getId(), user.getId());
-        }
-
-        return likeRepository.findAllByPost(post)
-                .stream()
-                .map(like -> LikeUserResponse.builder()
-                        .userId(like.getUser().getId())
-                        .profileImageUrl(like.getUser().getProfileImage())
-                        .username(like.getUser().getUsername())
-                        .build())
-                .toList();
-    }
-
-
     public List<PostResponse> getUserPosts(Long userId, String username){
         User user = userRepository.findById(userId)
                 .orElseThrow(()->new UserNotFoundException("User ID", userId.toString()));

@@ -1,11 +1,13 @@
 package com.blog.backend.service;
 
 import com.blog.backend.domain.Category;
+import com.blog.backend.domain.Comment;
 import com.blog.backend.domain.Post;
 import com.blog.backend.domain.User;
 import com.blog.backend.domain.repository.*;
 import com.blog.backend.dto.*;
 import com.blog.backend.exception.AuthorOnlyException;
+import com.blog.backend.exception.LoginUserNotMatchException;
 import com.blog.backend.exception.PostNotFoundException;
 import com.blog.backend.exception.UserNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -206,6 +208,43 @@ public class PostService {
                         .updatedAt(p.getUpdatedAt())
                         .likeCount(likeRepository.countByPost(p))
                         .profileImageUrl(p.getUser().getProfileImage())
+                        .build()
+                ).toList();
+    }
+
+    public List<LikeUserResponse> getLikeUserList(Long postId, String username) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new PostNotFoundException(postId));
+
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UserNotFoundException("Username", username));
+
+        if (!post.getUser().getId().equals(user.getId())) {
+            throw new LoginUserNotMatchException(post.getUser().getId(), user.getId());
+        }
+
+        return likeRepository.findAllByPost(post)
+                .stream()
+                .map(like -> LikeUserResponse.builder()
+                        .userId(like.getUser().getId())
+                        .profileImageUrl(like.getUser().getProfileImage())
+                        .username(like.getUser().getUsername())
+                        .build())
+                .toList();
+    }
+
+    public List<CommentResponse> getPostComments(Long postId) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(()-> new PostNotFoundException(postId));
+
+        List<Comment> comments = commentRepository.findByPost(post);
+
+        return comments.stream()
+                .map(c->CommentResponse.builder()
+                        .commentId(c.getId())
+                        .author(c.getUser().getUsername())
+                        .postId(c.getPost().getId())
+                        .content(c.getContent())
                         .build()
                 ).toList();
     }

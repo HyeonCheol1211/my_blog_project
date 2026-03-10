@@ -72,14 +72,7 @@ public class UserController {
         return ResponseEntity.ok(FollowerList);
     }
 
-    @GetMapping("/{postId}/likes")
-    public ResponseEntity<List<LikeUserResponse>> getLikeUserList(
-            @PathVariable Long postId,
-            Authentication authentication) {
-        String username = authentication.getName();
-        List<LikeUserResponse> likeUserResponses = userService.getLikeUserList(postId, username);
-        return ResponseEntity.ok(likeUserResponses);
-    }
+
 
     @GetMapping("/{userId}/posts")
     public ResponseEntity<List<PostResponse>> getUserPosts(

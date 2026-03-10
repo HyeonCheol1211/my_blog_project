@@ -112,20 +112,4 @@ public class CommentService {
                         )
                 .toList();
     }
-
-    public List<CommentResponse> getPostComments(Long postId) {
-        Post post = postRepository.findById(postId)
-                .orElseThrow(()-> new PostNotFoundException(postId));
-
-        List<Comment> comments = commentRepository.findByPost(post);
-
-        return comments.stream()
-                .map(c->CommentResponse.builder()
-                        .commentId(c.getId())
-                        .author(c.getUser().getUsername())
-                        .postId(c.getPost().getId())
-                        .content(c.getContent())
-                        .build()
-                ).toList();
-    }
 }

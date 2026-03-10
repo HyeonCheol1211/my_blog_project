@@ -1,6 +1,5 @@
 package com.blog.backend.controller;
 
-import com.blog.backend.domain.Comment;
 import com.blog.backend.dto.AddCommentRequest;
 import com.blog.backend.dto.CommentDetailResponse;
 import com.blog.backend.dto.CommentResponse;
@@ -19,7 +18,7 @@ import java.util.List;
 public class CommentController {
     private final CommentService commentService;
 
-    @PostMapping("/post/{postId}")
+    @PostMapping("/{postId}")
     public ResponseEntity<CommentResponse> addComment(
             @PathVariable Long postId,
             @RequestBody AddCommentRequest addCommentRequest,
@@ -56,9 +55,5 @@ public class CommentController {
         return ResponseEntity.ok(commentsDetailResponse);
     }
 
-    @GetMapping("/api/posts/{postId}/comments")
-    public ResponseEntity<List<CommentResponse>> getPostComments(@PathVariable Long postId){
-        List<CommentResponse> commentResponses = commentService.getPostComments(postId);
-        return ResponseEntity.ok(commentResponses);
-    }
+
 }
