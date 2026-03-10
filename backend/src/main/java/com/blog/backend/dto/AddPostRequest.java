@@ -9,9 +9,4 @@ public record AddPostRequest(
     String content,
     boolean publicStatus
 ){
-
-    public AddPostRequest(String categoryName) {
-        this(categoryName, null, null, false);
-    }
-
 }
