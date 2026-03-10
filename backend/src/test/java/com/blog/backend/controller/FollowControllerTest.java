@@ -4,7 +4,7 @@ import com.blog.backend.domain.Follow;
 import com.blog.backend.domain.User;
 import com.blog.backend.domain.repository.FollowRepository;
 import com.blog.backend.domain.repository.UserRepository;
-import com.blog.backend.dto.AddFollowRequest;
+import com.blog.backend.dto.FollowRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
@@ -84,11 +84,11 @@ class FollowControllerTest {
     @DisplayName("로그인 O, 팔로우 추가")
     @WithMockUser(username = "testUser2")
     void addFollow_login() throws Exception{
-        AddFollowRequest addFollowRequest = AddFollowRequest.builder()
+        FollowRequest followRequest = FollowRequest.builder()
                 .username(savedUser.getUsername())
                 .build();
 
-        String jsonRequest = objectMapper.writeValueAsString(addFollowRequest);
+        String jsonRequest = objectMapper.writeValueAsString(followRequest);
 
         MvcResult result = mockMvc.perform(post("/api/follows")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -102,11 +102,11 @@ class FollowControllerTest {
     @Test
     @DisplayName("로그인 X, 팔로우 추가")
     void addFollow_notLogin() throws Exception{
-        AddFollowRequest addFollowRequest = AddFollowRequest.builder()
+        FollowRequest followRequest = FollowRequest.builder()
                 .username(savedUser.getUsername())
                 .build();
 
-        String jsonRequest = objectMapper.writeValueAsString(addFollowRequest);
+        String jsonRequest = objectMapper.writeValueAsString(followRequest);
 
         mockMvc.perform(post("/api/follows")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -118,11 +118,11 @@ class FollowControllerTest {
     @DisplayName("로그인 O, 팔로우 삭제")
     @WithMockUser(username = "testUser3")
     void deleteFollow_login() throws Exception{
-        AddFollowRequest addFollowRequest = AddFollowRequest.builder()
+        FollowRequest followRequest = FollowRequest.builder()
                 .username(savedUser.getUsername())
                 .build();
 
-        String jsonRequest = objectMapper.writeValueAsString(addFollowRequest);
+        String jsonRequest = objectMapper.writeValueAsString(followRequest);
 
         MvcResult result = mockMvc.perform(delete("/api/follows")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -136,11 +136,11 @@ class FollowControllerTest {
     @Test
     @DisplayName("로그인 X, 팔로우 삭제")
     void deleteFollow_notLogin() throws Exception{
-        AddFollowRequest addFollowRequest = AddFollowRequest.builder()
+        FollowRequest followRequest = FollowRequest.builder()
                 .username(savedUser.getUsername())
                 .build();
 
-        String jsonRequest = objectMapper.writeValueAsString(addFollowRequest);
+        String jsonRequest = objectMapper.writeValueAsString(followRequest);
 
         mockMvc.perform(delete("/api/follows")
                         .contentType(MediaType.APPLICATION_JSON)

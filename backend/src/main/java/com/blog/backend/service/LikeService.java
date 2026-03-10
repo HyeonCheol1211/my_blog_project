@@ -7,15 +7,11 @@ import com.blog.backend.domain.repository.LikeRepository;
 import com.blog.backend.domain.repository.PostRepository;
 import com.blog.backend.domain.repository.UserRepository;
 import com.blog.backend.dto.LikeResponse;
-import com.blog.backend.dto.LikeUserResponse;
-import com.blog.backend.exception.AuthorOnlyException;
 import com.blog.backend.exception.PostNotFoundException;
 import com.blog.backend.exception.UserNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -31,12 +27,12 @@ public class LikeService {
         Post post = postRepository.findById(postId)
                 .orElseThrow(()-> new PostNotFoundException(postId));
         User user = userRepository.findByUsername(username)
-                .orElseThrow(()-> new UserNotFoundException(username));
+                .orElseThrow(()-> new UserNotFoundException("Username", username));
 
         return likeRepository.findByUserAndPost(user, post)
                 .map(like->LikeResponse.builder()
+                                .userId(like.getUser().getId())
                                 .postId(like.getPost().getId())
-                                .username(like.getUser().getUsername())
                                 .build()
                         )
                 .orElseGet(()->{
@@ -48,7 +44,7 @@ public class LikeService {
                     likeRepository.save(like);
 
                     return LikeResponse.builder()
-                            .username(like.getUser().getUsername())
+                            .userId(like.getUser().getId())
                             .postId(like.getPost().getId())
                             .build();
                 });
@@ -59,36 +55,16 @@ public class LikeService {
         Post post = postRepository.findById(postId)
                 .orElseThrow(()-> new PostNotFoundException(postId));
         User user = userRepository.findByUsername(username)
-                .orElseThrow(()-> new UserNotFoundException(username));
+                .orElseThrow(()-> new UserNotFoundException("Username", username));
 
         likeRepository.findByUserAndPost(user, post)
                 .ifPresent(likeRepository::delete);
 
         return LikeResponse.builder()
+                .userId(user.getId())
                 .postId(postId)
-                .username(username)
                 .build();
 
     }
 
-    public List<LikeUserResponse> getLikeUserList(Long postId, String username) {
-        Post post = postRepository.findById(postId)
-                .orElseThrow(()-> new PostNotFoundException(postId));
-
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(()-> new UserNotFoundException(username));
-
-        if(!post.getUser().getId().equals(user.getId())){
-            throw new AuthorOnlyException(post.getUser().getId());
-        }
-
-        return likeRepository.findAllByPost(post)
-                .stream()
-                .map(like -> LikeUserResponse.builder()
-                                .profileImageUrl(like.getUser().getProfileImage())
-                                .username(like.getUser().getUsername())
-                                .build()
-                        )
-                .toList();
-    }
 }

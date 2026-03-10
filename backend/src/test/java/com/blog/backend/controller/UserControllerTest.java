@@ -2,7 +2,7 @@ package com.blog.backend.controller;
 
 import com.blog.backend.domain.User;
 import com.blog.backend.domain.repository.UserRepository;
-import com.blog.backend.dto.UserJoinRequest;
+import com.blog.backend.dto.UserSignupRequest;
 import com.blog.backend.dto.UserLoginRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -53,13 +53,13 @@ class UserControllerTest {
     @Test
     @DisplayName("아이디 중복 X, 회원가입")
     void join_unique() throws Exception {
-        UserJoinRequest userJoinRequest = UserJoinRequest.builder()
+        UserSignupRequest userSignupRequest = UserSignupRequest.builder()
                 .username("테스트유저1")
                 .email("testUser1@naver.com")
                 .password("1234")
                 .build();
 
-        String jsonRequest = objectMapper.writeValueAsString(userJoinRequest);
+        String jsonRequest = objectMapper.writeValueAsString(userSignupRequest);
 
         MockMultipartFile jsonPart = new MockMultipartFile(
                 "userJoinRequest",
@@ -91,13 +91,13 @@ class UserControllerTest {
     @Test
     @DisplayName("아이디 중복 O, 회원가입")
     void join_notUnique() throws Exception {
-        UserJoinRequest userJoinRequest = UserJoinRequest.builder()
+        UserSignupRequest userSignupRequest = UserSignupRequest.builder()
                 .username("testUser")
                 .email("test123@test.com")
                 .password("123456")
                 .build();
 
-        String jsonRequest = objectMapper.writeValueAsString(userJoinRequest);
+        String jsonRequest = objectMapper.writeValueAsString(userSignupRequest);
 
         MockMultipartFile jsonPart = new MockMultipartFile(
                 "userJoinRequest",

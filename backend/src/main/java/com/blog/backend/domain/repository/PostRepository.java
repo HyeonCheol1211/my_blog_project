@@ -14,7 +14,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 
     List<Post> findAllByUserAndPublicStatus(User user, boolean publicStatus);
 
-    Long countByUserAndPublicStatus(User user2, boolean b);
+    Long countByUserAndPublicStatus(User user, boolean b);
 
-    Long countByUser(User targetUser);
+    Long countByUser(User user);
 }

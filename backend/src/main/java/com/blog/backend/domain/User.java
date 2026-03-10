@@ -27,7 +27,7 @@ public class User {
     @Column(nullable = false)
     private String password;
 
-    private String profileImage;
+    private String profileImage = "/images/profiles/basic_profile_image.png";
     private String bio;
 
     @CreationTimestamp
@@ -39,7 +39,9 @@ public class User {
         this.username = username;
         this.email = email;
         this.password = password;
-        this.profileImage = profileImage;
+        if(profileImage != null) {
+            this.profileImage = profileImage;
+        }
         this.bio = bio;
     }
 

@@ -9,6 +9,7 @@ import com.blog.backend.domain.repository.UserRepository;
 import com.blog.backend.dto.AddCommentRequest;
 import com.blog.backend.dto.CommentDetailResponse;
 import com.blog.backend.dto.CommentResponse;
+import com.blog.backend.dto.UpdateCommentRequest;
 import com.blog.backend.exception.AuthorOnlyException;
 import com.blog.backend.exception.CommentNotFoundException;
 import com.blog.backend.exception.PostNotFoundException;
@@ -28,39 +29,43 @@ public class CommentService {
     private final CommentRepository commentRepository;
 
     @Transactional
-    public CommentResponse addComment(AddCommentRequest addCommentRequest, Long postId, String username) {
+    public CommentResponse addComment(Long postId, AddCommentRequest addCommentRequest, String username) {
+        String content = addCommentRequest.content();
+
         User user = userRepository.findByUsername(username)
-                .orElseThrow(()-> new UserNotFoundException(username));
+                .orElseThrow(()-> new UserNotFoundException("Username", username));
+
         Post post = postRepository.findById(postId)
                 .orElseThrow(()-> new PostNotFoundException(postId));
+
         Comment comment = Comment.builder()
                 .user(user)
                 .post(post)
-                .content(addCommentRequest.content())
+                .content(content)
                 .build();
 
         commentRepository.save(comment);
 
         return CommentResponse.builder()
                 .commentId(comment.getId())
-                .postId(post.getId())
+                .postId(postId)
                 .author(username)
-                .content(comment.getContent())
+                .content(content)
                 .build();
     }
 
     @Transactional
-    public CommentResponse updateComment(Long commentId, AddCommentRequest addCommentRequest, String username) {
+    public CommentResponse updateComment(Long commentId, UpdateCommentRequest updateCommentRequest, String username) {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(()->new CommentNotFoundException(commentId));
         User user = userRepository.findByUsername(username)
-                .orElseThrow(()-> new UserNotFoundException(username));
+                .orElseThrow(()-> new UserNotFoundException("Username", username));
 
         if(!comment.getUser().getId().equals(user.getId())){
             throw new AuthorOnlyException(comment.getUser().getId());
         }
 
-        comment.updateComment(addCommentRequest);
+        comment.updateComment(updateCommentRequest.content());
         return CommentResponse.builder()
                 .author(comment.getUser().getUsername())
                 .commentId(comment.getId())
@@ -73,7 +78,7 @@ public class CommentService {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(()->new CommentNotFoundException(commentId));
         User user = userRepository.findByUsername(username)
-                .orElseThrow(()-> new UserNotFoundException(username));
+                .orElseThrow(()-> new UserNotFoundException("Username", username));
 
         if(!comment.getUser().getId().equals(user.getId())){
             throw new AuthorOnlyException(comment.getUser().getId());
@@ -93,7 +98,7 @@ public class CommentService {
 
     public List<CommentDetailResponse> getComments(String username) {
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new UserNotFoundException(username));
+                .orElseThrow(() -> new UserNotFoundException("User", username));
 
         List<Comment> comments = commentRepository.findAllByUser(user);
         return comments.stream()
@@ -106,5 +111,21 @@ public class CommentService {
                                 .build()
                         )
                 .toList();
+    }
+
+    public List<CommentResponse> getPostComments(Long postId) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(()-> new PostNotFoundException(postId));
+
+        List<Comment> comments = commentRepository.findByPost(post);
+
+        return comments.stream()
+                .map(c->CommentResponse.builder()
+                        .commentId(c.getId())
+                        .author(c.getUser().getUsername())
+                        .postId(c.getPost().getId())
+                        .content(c.getContent())
+                        .build()
+                ).toList();
     }
 }

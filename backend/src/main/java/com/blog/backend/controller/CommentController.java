@@ -1,8 +1,10 @@
 package com.blog.backend.controller;
 
+import com.blog.backend.domain.Comment;
 import com.blog.backend.dto.AddCommentRequest;
 import com.blog.backend.dto.CommentDetailResponse;
 import com.blog.backend.dto.CommentResponse;
+import com.blog.backend.dto.UpdateCommentRequest;
 import com.blog.backend.service.CommentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -17,28 +19,23 @@ import java.util.List;
 public class CommentController {
     private final CommentService commentService;
 
-    @PostMapping("/{postId}")
+    @PostMapping("/post/{postId}")
     public ResponseEntity<CommentResponse> addComment(
+            @PathVariable Long postId,
             @RequestBody AddCommentRequest addCommentRequest,
-            @PathVariable Long postId, Authentication authentication){
-        String username = null;
-        if(authentication != null){
-            username = authentication.getName();
-        }
-        CommentResponse commentResponse = commentService.addComment(addCommentRequest, postId, username);
+            Authentication authentication){
+        String username = authentication.getName();
+        CommentResponse commentResponse = commentService.addComment(postId, addCommentRequest, username);
         return ResponseEntity.ok(commentResponse);
     }
 
     @PutMapping("/{commentId}")
     public ResponseEntity<CommentResponse> updateComment(
             @PathVariable Long commentId,
-            @RequestBody AddCommentRequest addCommentRequest,
+            @RequestBody UpdateCommentRequest updateCommentRequest,
             Authentication authentication){
-        String username = null;
-        if(authentication != null){
-            username = authentication.getName();
-        }
-        CommentResponse commentResponse = commentService.updateComment(commentId, addCommentRequest, username);
+        String username = authentication.getName();
+        CommentResponse commentResponse = commentService.updateComment(commentId, updateCommentRequest, username);
         return ResponseEntity.ok(commentResponse);
     }
 
@@ -57,5 +54,11 @@ public class CommentController {
         String username = authentication.getName();
         List<CommentDetailResponse> commentsDetailResponse = commentService.getComments(username);
         return ResponseEntity.ok(commentsDetailResponse);
+    }
+
+    @GetMapping("/api/posts/{postId}/comments")
+    public ResponseEntity<List<CommentResponse>> getPostComments(@PathVariable Long postId){
+        List<CommentResponse> commentResponses = commentService.getPostComments(postId);
+        return ResponseEntity.ok(commentResponses);
     }
 }

@@ -1,20 +1,18 @@
 package com.blog.backend.service;
 
+import com.blog.backend.domain.Post;
 import com.blog.backend.domain.User;
 import com.blog.backend.domain.repository.FollowRepository;
+import com.blog.backend.domain.repository.LikeRepository;
 import com.blog.backend.domain.repository.PostRepository;
 import com.blog.backend.domain.repository.UserRepository;
-import com.blog.backend.dto.ProfileResponse;
-import com.blog.backend.dto.UserJoinRequest;
-import com.blog.backend.dto.UserResponse;
-import com.blog.backend.dto.UserUpdateRequest;
-import com.blog.backend.exception.DuplicateEmailException;
-import com.blog.backend.exception.DuplicateUsernameException;
-import com.blog.backend.exception.PasswordNotCorrectException;
-import com.blog.backend.exception.UserNotFoundException;
+import com.blog.backend.dto.*;
+import com.blog.backend.exception.*;
 import com.blog.backend.utils.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -24,42 +22,46 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class UserService {
+    private final UserDetailsService userDetailsService;
     @Value("${file.dir}")
     private String fileDir;
 
     private final UserRepository userRepository;
     private final FollowRepository followRepository;
     private final PostRepository postRepository;
+    private final LikeRepository likeRepository;
+    private final BCryptPasswordEncoder passwordEncoder;
 
     private final JwtUtil jwtUtil;
 
     @Transactional
-    public UserResponse join(UserJoinRequest userJoinRequest, MultipartFile multipartFile){
-        userRepository.findByUsername(userJoinRequest.username())
-                .ifPresent(u->{
-                    throw new DuplicateUsernameException(u.getUsername());
-                });
-        userRepository.findByEmail(userJoinRequest.email())
-                .ifPresent(u->{
-                    throw new DuplicateEmailException(u.getEmail());
+    public UserResponse signup(UserSignupRequest userSignupRequest, MultipartFile multipartFile) {
+        String username = userSignupRequest.username();
+        String email = userSignupRequest.email();
+        userRepository.findByUsernameOrEmail(username, email)
+                .ifPresent(u -> {
+                    if (u.getUsername().equals(username)) {
+                        throw new DuplicateUsernameException(username);
+                    }
+                    throw new DuplicateEmailException(email);
                 });
 
         String profileImage = imageValidate(multipartFile);
 
+        String encodedPassword = passwordEncoder.encode(userSignupRequest.password());
         User user = User.builder()
-                .email(userJoinRequest.email())
-                .password(userJoinRequest.password())
-                .username(userJoinRequest.username())
-                .profileImage((profileImage != null)
-                        ? profileImage
-                        : "/images/profiles/basic_profile_image.png")
-                .bio(userJoinRequest.bio())
+                .email(userSignupRequest.email())
+                .password(encodedPassword)
+                .username(userSignupRequest.username())
+                .profileImage(profileImage)
+                .bio(userSignupRequest.bio())
                 .build();
 
         userRepository.save(user);
@@ -70,38 +72,30 @@ public class UserService {
                 .build();
     }
 
-    public String login(String username, String password){
+    public LoginResponse login(UserLoginRequest userLoginRequest) {
+        String username = userLoginRequest.username();
+        String password = userLoginRequest.password();
         User selectedUser = userRepository.findByUsername(username)
-                .orElseThrow(()->new UserNotFoundException("존재하지 않는 유저입니다."));
+                .orElseThrow(() -> new UserNotFoundException("Username", username));
 
-        if(!selectedUser.getPassword().equals(password)){
+        if (!passwordEncoder.matches(password, selectedUser.getPassword())) {
             throw new PasswordNotCorrectException(password);
         }
 
-        return jwtUtil.createToken(username);
+        return LoginResponse.builder()
+                .token(jwtUtil.createToken(username))
+                .userId(selectedUser.getId())
+                .build();
     }
 
-    public ProfileResponse getProfile(String targetUsername, String username) {
+    public ProfileBasicResponse getProfileBasic(Long userId) {
 
-        User targetUser = userRepository.findByUsername(targetUsername)
-                .orElseThrow(()-> new UserNotFoundException(targetUsername));
+        User targetUser = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("User ID", userId.toString()));
 
-        Long followingCount = followRepository.countByUser1(targetUser);
-        Long followerCount = followRepository.countByUser2(targetUser);
-        Long postCount = 0L;
-        if(!targetUsername.equals(username)) {
-            postCount = postRepository.countByUserAndPublicStatus(targetUser, true);
-        }
-        if(targetUsername.equals(username)){
-            postCount = postRepository.countByUser(targetUser);
-        }
-        boolean isFollowing = false;
-        if(username != null) {
-            User user = userRepository.findByUsername(username)
-                    .orElseThrow(()-> new UserNotFoundException(username));
-            isFollowing =followRepository.existsByUser1AndUser2(user, targetUser);
-        }
-        return ProfileResponse.builder()
+        Long followingCount = followRepository.countByFollower(targetUser);
+        Long followerCount = followRepository.countByFollowing(targetUser);
+        return ProfileBasicResponse.builder()
                 .id(targetUser.getId())
                 .username(targetUser.getUsername())
                 .email(targetUser.getEmail())
@@ -110,8 +104,26 @@ public class UserService {
                 .createdAt(targetUser.getCreatedAt())
                 .followerCount(followerCount)
                 .followingCount(followingCount)
-                .postCount(postCount)
+                .build();
+    }
+
+    public ProfileExtraResponse getProfileExtra(Long userId, String username) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("User ID", userId.toString()));
+
+        boolean isFollowing = false;
+        if (username != null) {
+            User loginUser = userRepository.findByUsername(username)
+                    .orElseThrow(() -> new UserNotFoundException("Username", username));
+            isFollowing = followRepository.existsByFollowerAndFollowing(loginUser, user);
+        }
+        Long postAllCount = postRepository.countByUser(user);
+        Long postPublicCount = postRepository.countByUserAndPublicStatus(user, true);
+
+        return ProfileExtraResponse.builder()
                 .isFollowing(isFollowing)
+                .postAllCount(postAllCount)
+                .postPublicCount(postPublicCount)
                 .build();
     }
 
@@ -123,12 +135,12 @@ public class UserService {
             }
             String originalFilename = multipartFile.getOriginalFilename();
             String extension = originalFilename.substring(originalFilename.lastIndexOf("."));
-            String savedFilename = UUID.randomUUID().toString() + extension;
+            String savedFilename = UUID.randomUUID() + extension;
 
             String fullPath = fileDir + savedFilename;
 
             File folder = new File(fileDir);
-            if(!folder.exists()){
+            if (!folder.exists()) {
                 folder.mkdirs();
             }
             try {
@@ -143,37 +155,40 @@ public class UserService {
     }
 
     @Transactional
-    public UserResponse updateProfile(UserUpdateRequest userUpdateRequest, MultipartFile multipartFile, String username) {
+    public UserResponse updateProfile(UserUpdateRequest userUpdateRequest, MultipartFile multipartFile,
+            String username) {
         User user = userRepository.findByUsername(username)
-                .orElseThrow(()-> new UserNotFoundException(username));
+                .orElseThrow(() -> new UserNotFoundException("Username", username));
 
         String password = userUpdateRequest.password();
+        String encodedPassword = passwordEncoder.encode(password);
         String email = userUpdateRequest.email();
         String bio = userUpdateRequest.bio();
         String profileImage = null;
-        if(email != null) {
+        if (email != null) {
             userRepository.findByEmail(userUpdateRequest.email())
                     .ifPresent(u -> {
-                        if(!u.getId().equals(user.getId())) {
+                        if (!u.getId().equals(user.getId())) {
                             throw new DuplicateEmailException(u.getEmail());
                         }
                     });
             user.updateEmail(email);
         }
-        if(password != null) {
-            user.updatePassword(password);
+        if (password != null) {
+            user.updatePassword(encodedPassword);
         }
 
         user.updateBio(bio);
 
-        if(multipartFile != null && !multipartFile.isEmpty()){
-            if(user.getProfileImage() != null && !user.getProfileImage().equals("/images/profiles/basic_profile_image.png")){
+        if (multipartFile != null && !multipartFile.isEmpty()) {
+            if (user.getProfileImage() != null
+                    && !user.getProfileImage().equals("/images/profiles/basic_profile_image.png")) {
                 deleteOldProfileImage(user.getProfileImage());
             }
             profileImage = imageValidate(multipartFile);
         }
 
-        if(profileImage != null){
+        if (profileImage != null) {
             user.updateProfileImage(profileImage);
         }
 
@@ -193,4 +208,85 @@ public class UserService {
             throw new RuntimeException("예전 프로필 사진 삭제 실패");
         }
     }
+
+    public List<FollowerResponse> getFollowers(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("User ID", userId.toString()));
+        return followRepository.findAllByFollowing(user)
+                .stream()
+                .map(follow -> FollowerResponse.builder()
+                        .followerId(follow.getFollower().getId())
+                        .profileImageUrl(follow.getFollower().getProfileImage())
+                        .username(follow.getFollower().getUsername())
+                        .build())
+                .toList();
+    }
+
+    public List<FollowingResponse> getFollowings(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("User ID", userId.toString()));
+        return followRepository.findAllByfollower(user)
+                .stream()
+                .map(follow -> FollowingResponse.builder()
+                        .followingId(follow.getFollowing().getId())
+                        .profileImageUrl(follow.getFollowing().getProfileImage())
+                        .username(follow.getFollowing().getUsername())
+                        .build())
+                .toList();
+    }
+
+    public List<LikeUserResponse> getLikeUserList(Long postId, String username) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new PostNotFoundException(postId));
+
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UserNotFoundException("Username", username));
+
+        if (!post.getUser().getId().equals(user.getId())) {
+            throw new LoginUserNotMatchException(post.getUser().getId(), user.getId());
+        }
+
+        return likeRepository.findAllByPost(post)
+                .stream()
+                .map(like -> LikeUserResponse.builder()
+                        .userId(like.getUser().getId())
+                        .profileImageUrl(like.getUser().getProfileImage())
+                        .username(like.getUser().getUsername())
+                        .build())
+                .toList();
+    }
+
+
+    public List<PostResponse> getUserPosts(Long userId, String username){
+        User user = userRepository.findById(userId)
+                .orElseThrow(()->new UserNotFoundException("User ID", userId.toString()));
+
+        List<Post> posts;
+        if (username != null) {
+            User loginUser = userRepository.findByUsername(username)
+                    .orElseThrow(()->new UserNotFoundException("Username", username));
+            if(user.getId().equals(loginUser.getId())) {
+                posts = postRepository.findAllByUser(user);
+            } else {
+                posts = postRepository.findAllByUserAndPublicStatus(user, true);
+            }
+        } else {
+            posts = postRepository.findAllByUserAndPublicStatus(user, true);
+        }
+        return posts.stream()
+                .map(p-> PostResponse.builder()
+                        .id(p.getId())
+                        .title(p.getTitle())
+                        .content(p.getContent())
+                        .authorId(p.getUser().getId())
+                        .author(p.getUser().getUsername())
+                        .categoryName(p.getCategory().getName())
+                        .publicStatus(p.isPublicStatus())
+                        .createdAt(p.getCreatedAt())
+                        .updatedAt(p.getUpdatedAt())
+                        .likeCount(likeRepository.countByPost(p))
+                        .build()
+                ).toList();
+    }
+
 }

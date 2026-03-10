@@ -5,7 +5,7 @@ import lombok.Builder;
 import java.time.LocalDateTime;
 
 @Builder
-public record ProfileResponse(
+public record ProfileBasicResponse(
         Long id,
         String username,
         String email,
@@ -13,8 +13,6 @@ public record ProfileResponse(
         String profileImageUrl,
         LocalDateTime createdAt,
         Long followerCount,
-        Long followingCount,
-        Long postCount,
-        boolean isFollowing
+        Long followingCount
 ) {
 }

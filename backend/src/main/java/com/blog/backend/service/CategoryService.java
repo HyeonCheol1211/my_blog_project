@@ -21,7 +21,7 @@ public class CategoryService {
 
     public List<CategoryResponse> getCategoryList(String username) {
         User user = userRepository.findByUsername(username)
-                .orElseThrow(()-> new UserNotFoundException(username));
+                .orElseThrow(()-> new UserNotFoundException("Username", username));
 
         return categoryRepository.findAllByUser(user)
                 .stream()

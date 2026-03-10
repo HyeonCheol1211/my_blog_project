@@ -10,9 +10,9 @@ import java.util.List;
 
 @Repository
 public interface CommentRepository extends JpaRepository<Comment, Long> {
-    void deleteByPost(Post post);
-
     List<Comment> findAllByPost(Post post);
 
     List<Comment> findAllByUser(User user);
+
+    List<Comment> findByPost(Post post);
 }

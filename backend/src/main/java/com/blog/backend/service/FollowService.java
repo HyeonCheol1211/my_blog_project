@@ -4,16 +4,11 @@ import com.blog.backend.domain.Follow;
 import com.blog.backend.domain.User;
 import com.blog.backend.domain.repository.FollowRepository;
 import com.blog.backend.domain.repository.UserRepository;
-import com.blog.backend.dto.AddFollowRequest;
 import com.blog.backend.dto.FollowResponse;
-import com.blog.backend.dto.FollowerResponse;
-import com.blog.backend.dto.FollowingResponse;
 import com.blog.backend.exception.UserNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -23,47 +18,45 @@ public class FollowService {
     private final FollowRepository followRepository;
 
     @Transactional
-    public FollowResponse addFollow(AddFollowRequest addFollowRequest, String username) {
-        String username2 = addFollowRequest.username();
-        User user2 = userRepository.findByUsername(username2)
-                .orElseThrow(()-> new UserNotFoundException(username2));
-        User user1 = userRepository.findByUsername(username)
-                .orElseThrow(()-> new UserNotFoundException(username));
+    public FollowResponse addFollow(Long userId, String followerUsername) {
+        User following = userRepository.findById(userId)
+                .orElseThrow(()-> new UserNotFoundException("User ID", userId.toString()));
+        User follower = userRepository.findByUsername(followerUsername)
+                .orElseThrow(()-> new UserNotFoundException("Username", followerUsername));
 
-        return followRepository.findByUser1AndUser2(user1, user2)
+        return followRepository.findByFollowerAndFollowing(follower, following)
                 .map(follow -> FollowResponse.builder()
-                        .username1(follow.getUser1().getUsername())
-                        .username2(follow.getUser2().getUsername())
+                        .followerUsername(follow.getFollower().getUsername())
+                        .followingUsername(follow.getFollowing().getUsername())
                         .build())
                 .orElseGet(()->{
                     Follow follow = Follow.builder()
-                            .user1(user1)
-                            .user2(user2)
+                            .follower(follower)
+                            .following(following)
                             .build();
-                    if(!user1.getId().equals(user2.getId())) {
+                    if(!follower.getId().equals(following.getId())) {
                         followRepository.save(follow);
                     }
                     return FollowResponse.builder()
-                            .username1(user1.getUsername())
-                            .username2(user2.getUsername())
+                            .followerUsername(follower.getUsername())
+                            .followingUsername(following.getUsername())
                             .build();
                 });
     }
 
     @Transactional
-    public FollowResponse deleteFollow(AddFollowRequest addFollowRequest, String username){
-        User user1 = userRepository.findByUsername(username)
-                .orElseThrow(()-> new UserNotFoundException(username));
+    public FollowResponse deleteFollow(Long userId, String followerUsername){
+        User following = userRepository.findById(userId)
+                .orElseThrow(()-> new UserNotFoundException("User ID", userId.toString()));
 
-        String username2 = addFollowRequest.username();
-        User user2 = userRepository.findByUsername(username2)
-                .orElseThrow(()-> new UserNotFoundException(username2));
+        User follower = userRepository.findByUsername(followerUsername)
+                .orElseThrow(()-> new UserNotFoundException("Username", followerUsername));
 
-        return followRepository.findByUser1AndUser2(user1, user2)
+        return followRepository.findByFollowerAndFollowing(follower, following)
                 .map(follow -> {
                     FollowResponse followResponse = FollowResponse.builder()
-                            .username1(follow.getUser1().getUsername())
-                            .username2(follow.getUser2().getUsername())
+                            .followerUsername(follow.getFollower().getUsername())
+                            .followingUsername(follow.getFollower().getUsername())
                             .build();
                     followRepository.delete(follow);
                     return followResponse;
@@ -71,35 +64,10 @@ public class FollowService {
                 })
                 .orElseGet(()->
                     FollowResponse.builder()
-                            .username1(user1.getUsername())
-                            .username2(user2.getUsername())
+                            .followerUsername(follower.getUsername())
+                            .followingUsername(following.getUsername())
                             .build()
                 );
     }
 
-    public List<FollowerResponse> getFollowerList(String username) {
-        User user2 = userRepository.findByUsername(username)
-                .orElseThrow(()-> new UserNotFoundException(username));
-        return followRepository.findAllByUser2(user2)
-                .stream()
-                .map(follow -> FollowerResponse.builder()
-                        .profileImageUrl(follow.getUser1().getProfileImage())
-                        .username(follow.getUser1().getUsername())
-                        .build()
-                )
-                .toList();
-    }
-
-    public List<FollowingResponse> getFollowingList(String username) {
-        User user1 = userRepository.findByUsername(username)
-                .orElseThrow(()-> new UserNotFoundException(username));
-        return followRepository.findAllByUser1(user1)
-                .stream()
-                .map(follow -> FollowingResponse.builder()
-                        .profileImageUrl(follow.getUser2().getProfileImage())
-                        .username(follow.getUser2().getUsername())
-                        .build()
-                )
-                .toList();
-    }
 }
