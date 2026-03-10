@@ -30,7 +30,10 @@ public class User {
     @Column(nullable = false)
     private String password;
 
+    // User.java
+    @Builder.Default
     private String profileImage = "/images/profiles/basic_profile_image.png";
+
     private String bio;
 
     @CreationTimestamp
