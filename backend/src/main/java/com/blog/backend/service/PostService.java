@@ -261,7 +261,7 @@ public class PostService {
         User user = userRepository.findById(userId)
                 .orElseThrow(()-> new UserNotFoundException("User ID", userId.toString()));
 
-        if(postRepository.existsIdAndUser_Id(postId, userId)){
+        if(postRepository.existsByIdAndUser_Id(postId, userId)){
             throw new AlreadyAddException();
         }
 

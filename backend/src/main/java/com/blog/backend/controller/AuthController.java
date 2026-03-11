@@ -16,7 +16,7 @@ import org.springframework.web.multipart.MultipartFile;
 public class AuthController {
     private final AuthService authService;
 
-    @GetMapping("/check-username/username}")
+    @GetMapping("/check-username/{username}")
     public ResponseEntity<Void> checkUsername(@PathVariable String username){
         authService.checkUsername(username);
         return ResponseEntity.ok().build();
