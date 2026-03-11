@@ -1,6 +1,7 @@
 package com.blog.backend.domain;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -12,6 +13,8 @@ import java.time.LocalDateTime;
 @Table(name = "users")
 @Getter
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class User {
 
     @Id
@@ -27,21 +30,13 @@ public class User {
     @Column(nullable = false)
     private String password;
 
-    private String profileImage;
+    private String profileImage = "/images/profiles/basic_profile_image.png";
+
     private String bio;
 
     @CreationTimestamp
     private LocalDateTime createdAt;
 
-
-    @Builder
-    public User(String username, String email, String password, String profileImage, String bio) {
-        this.username = username;
-        this.email = email;
-        this.password = password;
-        this.profileImage = profileImage;
-        this.bio = bio;
-    }
 
     public void updateEmail(String email) {
         this.email = email;
@@ -57,5 +52,9 @@ public class User {
 
     public void updateProfileImage(String profileImage) {
         this.profileImage = profileImage;
+    }
+
+    public boolean canDeleteImage() {
+       return !profileImage.equals("/images/profiles/basic_profile_image.png");
     }
 }

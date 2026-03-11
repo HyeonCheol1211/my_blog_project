@@ -7,6 +7,7 @@ public record UpdatePostRequest (
     String categoryName,
     String title,
     String content,
-    boolean publicStatus)
+    boolean publicStatus
+)
 {
 }

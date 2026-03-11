@@ -2,7 +2,7 @@ package com.blog.backend.controller;
 
 import com.blog.backend.dto.*;
 import com.blog.backend.service.PostService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -11,71 +11,88 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/posts")
+@RequiredArgsConstructor
 public class PostController {
     private final PostService postService;
 
-    @Autowired
-    public PostController(PostService postService) {
-        this.postService = postService;
-    }
-
-    @GetMapping("{targetUsername}/list")
-    public ResponseEntity<List<PostResponse>> getUserPosts(
-            @PathVariable String targetUsername,
-            Authentication authentication){
-        String username = null;
-        if(authentication != null) {
-            username = authentication.getName();
-        }
-        List<PostResponse> getPostResponse = postService.getUserPosts(targetUsername, username);
-        return ResponseEntity.ok(getPostResponse);
-    }
-
-
-    @PostMapping("")
+    @PostMapping
     public ResponseEntity<PostResponse> addPost(
-            @RequestBody AddPostRequest addPostRequest
-            , Authentication authentication){
-        String username = authentication.getName();
-        PostResponse postResponse = postService.addPost(username, addPostRequest);
+            @RequestBody AddPostRequest addPostRequest, Authentication authentication) {
+        Long userId = Long.parseLong(authentication.getName());
+        PostResponse postResponse = postService.addPost(addPostRequest, userId);
         return ResponseEntity.ok(postResponse);
     }
 
     @DeleteMapping("/{postId}")
-    public ResponseEntity<DeletePostResponse> deletePost(
+    public ResponseEntity<Void> deletePost(
             @PathVariable Long postId,
-            Authentication authentication){
-        String username = null;
-        if(authentication != null) {
-            username = authentication.getName();
-        }
-        DeletePostResponse deletePostResponse= postService.deletePost(username, postId);
-        return ResponseEntity.ok(deletePostResponse);
+            Authentication authentication) {
+        Long userId = Long.parseLong(authentication.getName());
+        postService.deletePost(postId, userId);
+        return ResponseEntity.noContent().build();
     }
 
     @PutMapping("/{postId}")
     public ResponseEntity<PostResponse> updatePost(
-            @RequestBody UpdatePostRequest updatePostRequest,
             @PathVariable Long postId,
-            Authentication authentication){
-        String username = authentication.getName();
-        PostResponse postResponse = postService.updatePost(username, updatePostRequest, postId);
+            @RequestBody UpdatePostRequest updatePostRequest,
+            Authentication authentication) {
+        Long userId = Long.parseLong(authentication.getName());
+        PostResponse postResponse = postService.updatePost(postId, updatePostRequest, userId);
         return ResponseEntity.ok(postResponse);
     }
 
     @GetMapping("/{postId}")
-    public ResponseEntity<PostDetailResponse> getPost(@PathVariable Long postId, Authentication authentication){
-       String username = null;
-       if(authentication != null && authentication.isAuthenticated() && !authentication.getName().equals("anonymousUser")){
-           username = authentication.getName();
-       }
-       PostDetailResponse postDetailResponse = postService.getPost(postId, username);
-       return ResponseEntity.ok(postDetailResponse);
+    public ResponseEntity<PostDetailResponse> getPost(
+            @PathVariable Long postId,
+            Authentication authentication) {
+        Long userId = 0L;
+        if (authentication != null) {
+            userId = Long.parseLong(authentication.getName());
+        }
+        PostDetailResponse postDetailResponse = postService.getPost(postId, userId);
+        return ResponseEntity.ok(postDetailResponse);
     }
 
     @GetMapping("/list")
-    public ResponseEntity<List<PostResponse>> getPosts(){
+    public ResponseEntity<List<PostResponse>> getPosts() {
         List<PostResponse> postsResponse = postService.getPosts();
         return ResponseEntity.ok(postsResponse);
+    }
+
+    @GetMapping("/{postId}/likes")
+    public ResponseEntity<List<LikeUserResponse>> getLikeUserList(
+            @PathVariable Long postId,
+            Authentication authentication
+    ) {
+        Long userId = Long.parseLong(authentication.getName());
+        List<LikeUserResponse> likeUserResponses = postService.getLikeUserList(postId, userId);
+        return ResponseEntity.ok(likeUserResponses);
+    }
+
+    @GetMapping("/{postId}/comments")
+    public ResponseEntity<List<CommentResponse>> getPostComments(@PathVariable Long postId){
+        List<CommentResponse> commentResponses = postService.getPostComments(postId);
+        return ResponseEntity.ok(commentResponses);
+    }
+
+    @PostMapping("/{postId}/comment")
+    public ResponseEntity<CommentResponse> addComment(
+            @PathVariable Long postId,
+            @RequestBody AddCommentRequest addCommentRequest,
+            Authentication authentication){
+        Long userId = Long.parseLong(authentication.getName());
+        CommentResponse commentResponse = postService.addComment(postId, addCommentRequest, userId);
+        return ResponseEntity.ok(commentResponse);
+    }
+
+    @PostMapping("/{postId}/like")
+    public ResponseEntity<LikeResponse> addLike(
+            @PathVariable Long postId,
+            Authentication authentication
+    ){
+        Long userId = Long.parseLong(authentication.getName());
+        LikeResponse likeResponse = postService.addLike(postId, userId);
+        return ResponseEntity.ok(likeResponse);
     }
 }

@@ -22,20 +22,43 @@ public class Follow {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "follower_id")
     @OnDelete(action = OnDeleteAction.CASCADE)
-    private User user1;
+    private User follower;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "following_id")
     @OnDelete(action = OnDeleteAction.CASCADE)
-    private User user2;
+    private User following;
 
     @CreationTimestamp
     private LocalDateTime createdAt;
 
     @Builder
-    public Follow(User user1, User user2){
-        this.user1 = user1;
-        this.user2 = user2;
+    public Follow(User follower, User following){
+        this.follower = follower;
+        this.following = following;
     }
 
+    public Long getFollowerId() {
+        return follower.getId();
+    }
+
+    public String getFollowerProfileImage() {
+        return follower.getProfileImage();
+    }
+
+    public String getFollowerUsername() {
+        return follower.getUsername();
+    }
+
+    public Long getFollowingId() {
+        return following.getId();
+    }
+
+    public String getFollowingProfileImage() {
+        return following.getProfileImage();
+    }
+
+    public String getFollowingUsername() {
+        return following.getUsername();
+    }
 }

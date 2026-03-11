@@ -42,6 +42,9 @@ dependencies {
     //파일 유효성 검사?를 위한 라이브러리
     implementation 'org.springframework.boot:spring-boot-starter-validation'
 
+    //스웨거
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0'
+
 }
 
 tasks.named('test') {

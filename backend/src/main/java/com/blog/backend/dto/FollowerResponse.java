@@ -4,6 +4,7 @@ import lombok.Builder;
 
 @Builder
 public record FollowerResponse(
+        Long followerId,
         String username,
         String profileImageUrl
 ) {

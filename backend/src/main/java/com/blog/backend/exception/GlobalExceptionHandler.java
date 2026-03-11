@@ -51,28 +51,28 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(DuplicateUsernameException.class)
     public ResponseEntity<ErrorResponse> handleDuplicateUsernameException(DuplicateUsernameException e){
-        System.out.println("403 에러 발생: " + e.getMessage());
+        System.out.println("409 에러 발생: " + e.getMessage());
 
         ErrorResponse errorResponse = ErrorResponse.builder()
-                .status(HttpStatus.FORBIDDEN.value())
-                .error(HttpStatus.FORBIDDEN.name())
+                .status(HttpStatus.CONFLICT.value())
+                .error(HttpStatus.CONFLICT.name())
                 .message(e.getMessage())
                 .build();
 
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
     }
 
     @ExceptionHandler(DuplicateEmailException.class)
     public ResponseEntity<ErrorResponse> handleDuplicateEmailException(DuplicateEmailException e){
-        System.out.println("403 에러 발생: " + e.getMessage());
+        System.out.println("409 에러 발생: " + e.getMessage());
 
         ErrorResponse errorResponse = ErrorResponse.builder()
-                .status(HttpStatus.FORBIDDEN.value())
-                .error(HttpStatus.FORBIDDEN.name())
+                .status(HttpStatus.CONFLICT.value())
+                .error(HttpStatus.CONFLICT.name())
                 .message(e.getMessage())
                 .build();
 
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
     }
 
     @ExceptionHandler(PasswordNotCorrectException.class)
@@ -112,6 +112,45 @@ public class GlobalExceptionHandler {
                 .build();
 
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);
+    }
+
+    @ExceptionHandler(LoginUserNotMatchException.class)
+    public ResponseEntity<ErrorResponse> LoginUserNotMatchException(LoginUserNotMatchException e){
+        System.out.println("403 에러 발생: " + e.getMessage());
+
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .status(HttpStatus.FORBIDDEN.value())
+                .error(HttpStatus.FORBIDDEN.name())
+                .message(e.getMessage())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);
+    }
+
+    @ExceptionHandler(AlreadyAddException.class)
+    public ResponseEntity<ErrorResponse> AlreadyDoneException(AlreadyAddException e){
+        System.out.println("409 에러 발생: " + e.getMessage());
+
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .status(HttpStatus.CONFLICT.value())
+                .error(HttpStatus.CONFLICT.name())
+                .message(e.getMessage())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
+    }
+
+    @ExceptionHandler(AlreadyDeleteException.class)
+    public ResponseEntity<ErrorResponse> AlreadyDeleteException(AlreadyDeleteException e){
+        System.out.println("204 에러 발생: " + e.getMessage());
+
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .status(HttpStatus.NO_CONTENT.value())
+                .error(HttpStatus.NO_CONTENT.name())
+                .message(e.getMessage())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).body(errorResponse);
     }
 
 

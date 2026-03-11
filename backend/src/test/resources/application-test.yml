@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: jdbc:h2:mem:testdb
+    url: jdbc:h2:mem:testdb;MODE=MySQL # MySQL 모드로 호환성 높임
     driver-class-name: org.h2.Driver
     username: sa
     password:
@@ -8,9 +8,15 @@ spring:
   jpa:
     hibernate:
       ddl-auto: create-drop
+    show-sql: true # 테스트 시 쿼리 로그 확인을 위해 추가
+
+  servlet: # 테스트 중 파일 업로드 API 호출 시 에러 방지
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 50MB
 
 jwt:
   secret: "testsecretkeytestsecretkeytestsecretkey123"
 
 file:
-  dir : ./test_uploads/
+  dir: ./test_uploads/

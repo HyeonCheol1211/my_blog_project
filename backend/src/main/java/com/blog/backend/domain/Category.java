@@ -13,6 +13,7 @@ import org.hibernate.annotations.OnDeleteAction;
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
+@Builder
 public class Category {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -26,6 +27,7 @@ public class Category {
     @OnDelete(action = OnDeleteAction.CASCADE)
     User user;
 
+    @Builder.Default
     Long count=0L;
 
     public void increaseCount(){
@@ -34,11 +36,5 @@ public class Category {
 
     public void decreaseCount(){
         count--;
-    }
-
-    @Builder
-    public Category(User user, String name){
-        this.user = user;
-        this.name = name;
     }
 }

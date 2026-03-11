@@ -17,6 +17,7 @@ import java.time.LocalDateTime;
 @Table(name = "posts")
 @Getter
 @AllArgsConstructor
+@Builder
 public class Post {
 
     @Id
@@ -48,19 +49,26 @@ public class Post {
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
-    @Builder
-    public Post(User user, Category category, String title, String content, boolean publicStatus){
-        this.user = user;
+    public void update(Category category, String title, String content, Boolean publicStatus) {
         this.category = category;
         this.title = title;
         this.content = content;
         this.publicStatus = publicStatus;
     }
 
-    public void update(Category category, String title, String content, Boolean publicStatus) {
-        this.category = category;
-        this.title = title;
-        this.content = content;
-        this.publicStatus = publicStatus;
+    public Long getUserId(){
+        return user.getId();
+    }
+
+    public String getUsername(){
+        return user.getUsername();
+    }
+
+    public String getCategoryName(){
+        return category.getName();
+    }
+
+    public String getProfileImage(){
+        return user.getProfileImage();
     }
 }

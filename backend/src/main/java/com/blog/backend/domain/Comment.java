@@ -1,7 +1,7 @@
 package com.blog.backend.domain;
 
-import com.blog.backend.dto.AddCommentRequest;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -15,6 +15,8 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Table(name = "comments")
 @Getter
+@AllArgsConstructor
+@Builder
 public class Comment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -43,8 +45,24 @@ public class Comment {
         this.content = content;
     }
 
-    public void updateComment(AddCommentRequest addCommentRequest){
-        this.content = addCommentRequest.content();
+    public void updateComment(String content){
+        this.content = content;
+    }
+
+    public Long getUserId(){
+        return user.getId();
+    }
+
+    public String getUsername(){
+        return user.getUsername();
+    }
+
+    public Long getPostId(){
+        return post.getId();
+    }
+
+    public String getPostTitle(){
+        return post.getTitle();
     }
 
 }
