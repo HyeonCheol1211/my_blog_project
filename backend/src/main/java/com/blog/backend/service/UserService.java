@@ -107,7 +107,6 @@ public class UserService {
                 .orElseThrow(() -> new UserNotFoundException("User ID", userId.toString()));
 
         String password = userUpdateRequest.password();
-        String encodedPassword = passwordEncoder.encode(password);
         String email = userUpdateRequest.email();
         String bio = userUpdateRequest.bio();
         String profileImage = null;
@@ -120,6 +119,7 @@ public class UserService {
             user.updateEmail(email);
         }
         if (password != null) {
+            String encodedPassword = passwordEncoder.encode(password);
             user.updatePassword(encodedPassword);
         }
 

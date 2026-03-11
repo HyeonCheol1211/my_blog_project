@@ -29,15 +29,15 @@ public class CommentService {
     public CommentResponse updateComment(Long commentId, UpdateCommentRequest updateCommentRequest, Long userId) {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(()->new CommentNotFoundException(commentId));
-        User user = userRepository.findById(userId)
-                .orElseThrow(()-> new UserNotFoundException("User ID", userId.toString()));
 
-        if(!comment.getUserId().equals(user.getId())){
+        if(!comment.getUserId().equals(userId)){
             throw new AuthorOnlyException(comment.getUserId());
         }
 
         comment.updateComment(updateCommentRequest.content());
         return CommentResponse.builder()
+                .authorId(comment.getUserId())
+                .profileImageUrl(comment.getProfileImage())
                 .author(comment.getUsername())
                 .commentId(comment.getId())
                 .content(comment.getContent())

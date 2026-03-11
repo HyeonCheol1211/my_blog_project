@@ -65,4 +65,7 @@ public class Comment {
         return post.getTitle();
     }
 
+    public String getProfileImage() {
+        return user.getProfileImage();
+    }
 }

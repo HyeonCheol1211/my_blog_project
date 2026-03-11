@@ -44,11 +44,11 @@ public class JwtFilter extends OncePerRequestFilter {
 
         jwtUtil.validateToken(token);
 
-        String username = jwtUtil.getUsername(token);
-        log.info("userName: {}", username);
+        Long userId = Long.parseLong(jwtUtil.getUsername(token));
+        log.info("userId: {}", userId);
 
         UsernamePasswordAuthenticationToken authenticationToken =
-                new UsernamePasswordAuthenticationToken(username, null, null);
+                new UsernamePasswordAuthenticationToken(userId, null, null);
 
         authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
         SecurityContextHolder.getContext().setAuthentication(authenticationToken);

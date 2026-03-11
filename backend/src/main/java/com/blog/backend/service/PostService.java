@@ -220,6 +220,8 @@ public class PostService {
 
         return comments.stream()
                 .map(c->CommentResponse.builder()
+                        .authorId(c.getUserId())
+                        .profileImageUrl(c.getProfileImage())
                         .commentId(c.getId())
                         .author(c.getUsername())
                         .postId(c.getPostId())
@@ -247,6 +249,8 @@ public class PostService {
         commentRepository.save(comment);
 
         return CommentResponse.builder()
+                .authorId(user.getId())
+                .profileImageUrl(user.getProfileImage())
                 .commentId(comment.getId())
                 .postId(postId)
                 .author(user.getUsername())
