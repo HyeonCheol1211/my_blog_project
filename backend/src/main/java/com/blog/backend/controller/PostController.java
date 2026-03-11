@@ -4,7 +4,7 @@ import com.blog.backend.dto.*;
 import com.blog.backend.service.PostService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -17,8 +17,8 @@ public class PostController {
 
     @PostMapping
     public ResponseEntity<PostResponse> addPost(
-            @RequestBody AddPostRequest addPostRequest, Authentication authentication) {
-        Long userId = Long.parseLong(authentication.getName());
+            @RequestBody AddPostRequest addPostRequest, @AuthenticationPrincipal Long userId) {
+        
         PostResponse postResponse = postService.addPost(addPostRequest, userId);
         return ResponseEntity.ok(postResponse);
     }
@@ -26,8 +26,8 @@ public class PostController {
     @DeleteMapping("/{postId}")
     public ResponseEntity<Void> deletePost(
             @PathVariable Long postId,
-            Authentication authentication) {
-        Long userId = Long.parseLong(authentication.getName());
+            @AuthenticationPrincipal Long userId) {
+        
         postService.deletePost(postId, userId);
         return ResponseEntity.noContent().build();
     }
@@ -36,8 +36,8 @@ public class PostController {
     public ResponseEntity<PostResponse> updatePost(
             @PathVariable Long postId,
             @RequestBody UpdatePostRequest updatePostRequest,
-            Authentication authentication) {
-        Long userId = Long.parseLong(authentication.getName());
+            @AuthenticationPrincipal Long userId) {
+        
         PostResponse postResponse = postService.updatePost(postId, updatePostRequest, userId);
         return ResponseEntity.ok(postResponse);
     }
@@ -45,11 +45,7 @@ public class PostController {
     @GetMapping("/{postId}")
     public ResponseEntity<PostDetailResponse> getPost(
             @PathVariable Long postId,
-            Authentication authentication) {
-        Long userId = 0L;
-        if (authentication != null) {
-            userId = Long.parseLong(authentication.getName());
-        }
+            @AuthenticationPrincipal Long userId) {
         PostDetailResponse postDetailResponse = postService.getPost(postId, userId);
         return ResponseEntity.ok(postDetailResponse);
     }
@@ -63,9 +59,9 @@ public class PostController {
     @GetMapping("/{postId}/likes")
     public ResponseEntity<List<LikeUserResponse>> getLikeUserList(
             @PathVariable Long postId,
-            Authentication authentication
+            @AuthenticationPrincipal Long userId
     ) {
-        Long userId = Long.parseLong(authentication.getName());
+        
         List<LikeUserResponse> likeUserResponses = postService.getLikeUserList(postId, userId);
         return ResponseEntity.ok(likeUserResponses);
     }
@@ -80,8 +76,8 @@ public class PostController {
     public ResponseEntity<CommentResponse> addComment(
             @PathVariable Long postId,
             @RequestBody AddCommentRequest addCommentRequest,
-            Authentication authentication){
-        Long userId = Long.parseLong(authentication.getName());
+            @AuthenticationPrincipal Long userId){
+        
         CommentResponse commentResponse = postService.addComment(postId, addCommentRequest, userId);
         return ResponseEntity.ok(commentResponse);
     }
@@ -89,9 +85,9 @@ public class PostController {
     @PostMapping("/{postId}/like")
     public ResponseEntity<LikeResponse> addLike(
             @PathVariable Long postId,
-            Authentication authentication
+            @AuthenticationPrincipal Long userId
     ){
-        Long userId = Long.parseLong(authentication.getName());
+        
         LikeResponse likeResponse = postService.addLike(postId, userId);
         return ResponseEntity.ok(likeResponse);
     }

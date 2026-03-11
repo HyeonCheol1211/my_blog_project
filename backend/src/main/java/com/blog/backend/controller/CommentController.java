@@ -6,7 +6,7 @@ import com.blog.backend.dto.UpdateCommentRequest;
 import com.blog.backend.service.CommentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,8 +21,8 @@ public class CommentController {
     public ResponseEntity<CommentResponse> updateComment(
             @PathVariable Long commentId,
             @RequestBody UpdateCommentRequest updateCommentRequest,
-            Authentication authentication){
-        Long userId = Long.parseLong(authentication.getName());
+            @AuthenticationPrincipal Long userId){
+        
         CommentResponse commentResponse = commentService.updateComment(commentId, updateCommentRequest, userId);
         return ResponseEntity.ok(commentResponse);
     }
@@ -30,16 +30,16 @@ public class CommentController {
     @DeleteMapping("/{commentId}")
     public ResponseEntity<Void> deleteComment(
             @PathVariable Long commentId,
-            Authentication authentication
+            @AuthenticationPrincipal Long userId
     ){
-        Long userId = Long.parseLong(authentication.getName());
+        
         commentService.deleteComment(commentId, userId);
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping
-    public ResponseEntity<List<CommentDetailResponse>> getMyComments(Authentication authentication){
-        Long userId = Long.parseLong(authentication.getName());
+    public ResponseEntity<List<CommentDetailResponse>> getMyComments(@AuthenticationPrincipal Long userId){
+        
         List<CommentDetailResponse> commentsDetailResponse = commentService.getMyComments(userId);
         return ResponseEntity.ok(commentsDetailResponse);
     }

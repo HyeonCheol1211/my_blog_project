@@ -140,7 +140,7 @@ public class PostService {
         if(canGetPost(post, userId)){
             Long likeCount = likeRepository.countByPost(post);
             boolean liked = false;
-            if(userId != 0L){
+            if(userId != null){
                 User user = userRepository.findById(userId)
                         .orElseThrow(()-> new UserNotFoundException("User ID", userId.toString()));
                 liked = likeRepository.existsByUserAndPost(user, post);

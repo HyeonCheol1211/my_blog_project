@@ -60,7 +60,7 @@ public class UserService {
 
     public ProfileExtraResponse getProfileExtra(Long userId, Long loginUserId) {
         boolean isFollowing = false;
-        if (loginUserId != 0L) {
+        if (userId != null) {
             isFollowing = followRepository.existsByFollower_IdAndFollowing_Id(loginUserId, userId);
         }
         Long postAllCount = postRepository.countByUser_Id(userId);
@@ -177,11 +177,11 @@ public class UserService {
 
     public List<PostResponse> getUserPosts(Long userId, Long loginUserId){
         List<Post> posts = List.of();
-        if(loginUserId != 0L && userId.equals(loginUserId)) {
+        if(loginUserId != null && userId.equals(loginUserId)) {
             posts = postRepository.findAllByUser_Id(userId);
         }
         
-        if(loginUserId == 0L || !userId.equals(loginUserId)){
+        if(loginUserId == null || !userId.equals(loginUserId)){
             posts = postRepository.findAllByUser_IdAndPublicStatus(userId, true);
         }
         

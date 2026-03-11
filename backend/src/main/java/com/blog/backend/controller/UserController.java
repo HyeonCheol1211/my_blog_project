@@ -4,7 +4,7 @@ import com.blog.backend.dto.*;
 import com.blog.backend.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -25,11 +25,7 @@ public class UserController {
     @GetMapping("/profile/extra/{userId}")
     public ResponseEntity<ProfileExtraResponse> getProfileExtra(
             @PathVariable Long userId,
-            Authentication authentication) {
-        Long loginUserId = 0L;
-        if (authentication != null) {
-            loginUserId = Long.parseLong(authentication.getName());
-        }
+            @AuthenticationPrincipal Long loginUserId) {
         ProfileExtraResponse profileExtraResponse = userService.getProfileExtra(userId, loginUserId);
         return ResponseEntity.ok(profileExtraResponse);
     }
@@ -38,8 +34,8 @@ public class UserController {
     public ResponseEntity<UserResponse> updateProfile(
             @RequestPart(value = "userUpdateRequest") UserUpdateRequest userUpdateRequest,
             @RequestPart(value = "profileImage", required = false) MultipartFile multipartFile,
-            Authentication authentication) {
-        Long userId = Long.parseLong(authentication.getName());
+            @AuthenticationPrincipal Long userId) {
+        
         UserResponse userResponse = userService.updateProfile(userUpdateRequest, multipartFile, userId);
         return ResponseEntity.ok(userResponse);
     }
@@ -61,11 +57,7 @@ public class UserController {
     @GetMapping("/{userId}/posts")
     public ResponseEntity<List<PostResponse>> getUserPosts(
             @PathVariable Long userId,
-            Authentication authentication) {
-        Long loginUserId = 0L;
-        if (authentication != null) {
-            loginUserId = Long.parseLong(authentication.getName());
-        }
+            @AuthenticationPrincipal Long loginUserId) {
         List<PostResponse> getPostResponse = userService.getUserPosts(userId, loginUserId);
         return ResponseEntity.ok(getPostResponse);
     }
