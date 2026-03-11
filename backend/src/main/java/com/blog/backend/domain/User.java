@@ -53,4 +53,8 @@ public class User {
     public void updateProfileImage(String profileImage) {
         this.profileImage = profileImage;
     }
+
+    public boolean canDeleteImage() {
+       return !profileImage.equals("/images/profiles/basic_profile_image.png");
+    }
 }

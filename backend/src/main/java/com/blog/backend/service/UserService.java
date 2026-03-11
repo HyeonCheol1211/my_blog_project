@@ -7,8 +7,8 @@ import com.blog.backend.domain.repository.LikeRepository;
 import com.blog.backend.domain.repository.PostRepository;
 import com.blog.backend.domain.repository.UserRepository;
 import com.blog.backend.dto.*;
-import com.blog.backend.exception.*;
-import com.blog.backend.utils.JwtUtil;
+import com.blog.backend.exception.DuplicateEmailException;
+import com.blog.backend.exception.UserNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -38,56 +38,6 @@ public class UserService {
     private final PostRepository postRepository;
     private final LikeRepository likeRepository;
     private final BCryptPasswordEncoder passwordEncoder;
-
-    private final JwtUtil jwtUtil;
-
-    @Transactional
-    public UserResponse signup(UserSignupRequest userSignupRequest, MultipartFile multipartFile) {
-        String username = userSignupRequest.username();
-        String email = userSignupRequest.email();
-        userRepository.findByUsernameOrEmail(username, email)
-                .ifPresent(u -> {
-                    if (u.getUsername().equals(username)) {
-                        throw new DuplicateUsernameException(username);
-                    }
-                    throw new DuplicateEmailException(email);
-                });
-
-        String profileImage = imageValidate(multipartFile);
-
-        String encodedPassword = passwordEncoder.encode(userSignupRequest.password());
-        User user = User.builder()
-                .email(userSignupRequest.email())
-                .password(encodedPassword)
-                .username(userSignupRequest.username())
-                .profileImage((profileImage==null) ? "/images/profiles/basic_profile_image.png" : profileImage)
-                .bio(userSignupRequest.bio())
-                .build();
-
-        userRepository.save(user);
-
-        return UserResponse.builder()
-                .username(user.getUsername())
-                .email(user.getEmail())
-                .build();
-    }
-
-    public LoginResponse login(UserLoginRequest userLoginRequest) {
-        String username = userLoginRequest.username();
-        String password = userLoginRequest.password();
-        User selectedUser = userRepository.findByUsername(username)
-                .orElseThrow(() -> new UserNotFoundException("Username", username));
-
-        if (!passwordEncoder.matches(password, selectedUser.getPassword())) {
-            throw new PasswordNotCorrectException(password);
-        }
-        Long userId = selectedUser.getId();
-
-        return LoginResponse.builder()
-                .token(jwtUtil.createToken(userId))
-                .userId(selectedUser.getId())
-                .build();
-    }
 
     public ProfileBasicResponse getProfileBasic(Long userId) {
 
@@ -161,13 +111,12 @@ public class UserService {
         String email = userUpdateRequest.email();
         String bio = userUpdateRequest.bio();
         String profileImage = null;
-        if (email != null) {
-            userRepository.findByEmail(userUpdateRequest.email())
-                    .ifPresent(u -> {
-                        if (!u.getId().equals(user.getId())) {
-                            throw new DuplicateEmailException(u.getEmail());
-                        }
-                    });
+
+        if (email != null && userRepository.existsByEmail(email)) {
+            throw new DuplicateEmailException(email);
+        }
+
+        if (email != null && !userRepository.existsByEmail(email)) {
             user.updateEmail(email);
         }
         if (password != null) {
@@ -177,8 +126,7 @@ public class UserService {
         user.updateBio(bio);
 
         if (multipartFile != null && !multipartFile.isEmpty()) {
-            if (user.getProfileImage() != null
-                    && !user.getProfileImage().equals("/images/profiles/basic_profile_image.png")) {
+            if (user.canDeleteImage()) {
                 deleteOldProfileImage(user.getProfileImage());
             }
             profileImage = imageValidate(multipartFile);

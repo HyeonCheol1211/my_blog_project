@@ -36,18 +36,13 @@ public class SecurityConfig {
                 )
 
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/users/signup").permitAll()
-                        .requestMatchers("/api/users/login").permitAll()
+                        .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/posts/list").permitAll()
                         .requestMatchers(HttpMethod.GET,"/api/posts/{postId}").permitAll()
                         .requestMatchers(HttpMethod.GET,"/api/posts/{postId}/comments").permitAll()
                         .requestMatchers("/images/**").permitAll()
                         .requestMatchers("/error").permitAll()
-                        .requestMatchers("/api/users/profile/basic/**").permitAll()
-                        .requestMatchers("/api/users/profile/extra/**").permitAll()
-                        .requestMatchers("/api/users/*/followers").permitAll()
-                        .requestMatchers("/api/users/*/followings").permitAll()
-                        .requestMatchers("/api/users/{userId}/posts").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/users/**").permitAll()
                         .requestMatchers(
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",

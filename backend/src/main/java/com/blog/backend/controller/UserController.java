@@ -16,20 +16,6 @@ import java.util.List;
 public class UserController {
     private final UserService userService;
 
-    @PostMapping("/signup")
-    public ResponseEntity<UserResponse> signup(
-            @RequestPart(value = "userJoinRequest") UserSignupRequest userSignupRequest,
-            @RequestPart(value = "profileImage", required = false) MultipartFile multipartFile) {
-        UserResponse userResponse = userService.signup(userSignupRequest, multipartFile);
-        return ResponseEntity.ok(userResponse);
-    }
-
-    @PostMapping("/login")
-    public ResponseEntity<LoginResponse> login(@RequestBody UserLoginRequest userLoginRequest) {
-        LoginResponse loginResponse = userService.login(userLoginRequest);
-        return ResponseEntity.ok().body(loginResponse);
-    }
-
     @GetMapping("/profile/basic/{userId}")
     public ResponseEntity<ProfileBasicResponse> getProfileBasic(@PathVariable Long userId) {
         ProfileBasicResponse profileBasicResponse = userService.getProfileBasic(userId);
