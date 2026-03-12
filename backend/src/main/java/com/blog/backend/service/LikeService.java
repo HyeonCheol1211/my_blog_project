@@ -6,6 +6,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.blog.backend.domain.repository.LikeRepository;
 import com.blog.backend.domain.repository.PostRepository;
 import com.blog.backend.domain.repository.UserRepository;
+import com.blog.backend.dto.LikeResponse;
 import com.blog.backend.exception.AlreadyDeleteException;
 
 import lombok.RequiredArgsConstructor;
@@ -19,10 +20,13 @@ public class LikeService {
     private final PostRepository postRepository;
 
     @Transactional
-    public void deleteLike(Long postId, Long userId) {
+    public LikeResponse deleteLike(Long postId, Long userId) {
         if (!likeRepository.existsByUser_IdAndPost_Id(userId, postId)) {
             throw new AlreadyDeleteException();
         }
         likeRepository.removeByUser_IdAndPost_Id(userId, postId);
+        Long likeCount = likeRepository.countByPost_Id(postId);
+
+        return LikeResponse.builder().totalCount(likeCount).build();
     }
 }
