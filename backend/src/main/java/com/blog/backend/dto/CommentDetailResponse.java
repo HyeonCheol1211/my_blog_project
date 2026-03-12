@@ -4,4 +4,9 @@ import lombok.Builder;
 
 @Builder
 public record CommentDetailResponse(
-        Long commentId, String author, String profileImageUrl, Long postId, String postTitle, String content) {}
+        Long commentId,
+        String author,
+        String profileImageUrl,
+        Long postId,
+        String postTitle,
+        String content) {}
