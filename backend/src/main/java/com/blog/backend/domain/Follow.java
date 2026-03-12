@@ -1,14 +1,16 @@
 package com.blog.backend.domain;
 
+import java.time.LocalDateTime;
+
 import jakarta.persistence.*;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
-import java.time.LocalDateTime;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "follows")
@@ -29,11 +31,10 @@ public class Follow {
     @OnDelete(action = OnDeleteAction.CASCADE)
     private User following;
 
-    @CreationTimestamp
-    private LocalDateTime createdAt;
+    @CreationTimestamp private LocalDateTime createdAt;
 
     @Builder
-    public Follow(User follower, User following){
+    public Follow(User follower, User following) {
         this.follower = follower;
         this.following = following;
     }

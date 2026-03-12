@@ -1,12 +1,14 @@
 package com.blog.backend.service;
 
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.blog.backend.domain.repository.LikeRepository;
 import com.blog.backend.domain.repository.PostRepository;
 import com.blog.backend.domain.repository.UserRepository;
 import com.blog.backend.exception.AlreadyDeleteException;
+
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -16,10 +18,9 @@ public class LikeService {
     private final UserRepository userRepository;
     private final PostRepository postRepository;
 
-
     @Transactional
     public void deleteLike(Long postId, Long userId) {
-        if(!likeRepository.existsByUser_IdAndPost_Id(userId, postId)){
+        if (!likeRepository.existsByUser_IdAndPost_Id(userId, postId)) {
             throw new AlreadyDeleteException();
         }
         likeRepository.removeByUser_IdAndPost_Id(userId, postId);

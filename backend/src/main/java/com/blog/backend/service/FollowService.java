@@ -1,5 +1,8 @@
 package com.blog.backend.service;
 
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.blog.backend.domain.Follow;
 import com.blog.backend.domain.User;
 import com.blog.backend.domain.repository.FollowRepository;
@@ -8,9 +11,8 @@ import com.blog.backend.dto.FollowResponse;
 import com.blog.backend.exception.AlreadyAddException;
 import com.blog.backend.exception.AlreadyDeleteException;
 import com.blog.backend.exception.UserNotFoundException;
+
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -21,18 +23,20 @@ public class FollowService {
 
     @Transactional
     public FollowResponse addFollow(Long userId, Long loginUserId) {
-        User following = userRepository.findById(userId)
-                .orElseThrow(()-> new UserNotFoundException("User ID", userId.toString()));
-        User follower = userRepository.findById(loginUserId)
-                .orElseThrow(()-> new UserNotFoundException("User ID", loginUserId.toString()));
+        User following =
+                userRepository
+                        .findById(userId)
+                        .orElseThrow(() -> new UserNotFoundException("User ID", userId.toString()));
+        User follower =
+                userRepository
+                        .findById(loginUserId)
+                        .orElseThrow(
+                                () -> new UserNotFoundException("User ID", loginUserId.toString()));
 
-        if(followRepository.existsByFollowerAndFollowing(follower, following)){
+        if (followRepository.existsByFollowerAndFollowing(follower, following)) {
             throw new AlreadyAddException();
         }
-        Follow follow = Follow.builder()
-                .follower(follower)
-                .following(following)
-                .build();
+        Follow follow = Follow.builder().follower(follower).following(following).build();
 
         followRepository.save(follow);
 
@@ -43,18 +47,22 @@ public class FollowService {
     }
 
     @Transactional
-    public void deleteFollow(Long userId, Long loginUserId){
-        User following = userRepository.findById(userId)
-                .orElseThrow(()-> new UserNotFoundException("User ID", userId.toString()));
+    public void deleteFollow(Long userId, Long loginUserId) {
+        User following =
+                userRepository
+                        .findById(userId)
+                        .orElseThrow(() -> new UserNotFoundException("User ID", userId.toString()));
 
-        User follower = userRepository.findById(loginUserId)
-                .orElseThrow(()-> new UserNotFoundException("User ID", loginUserId.toString()));
+        User follower =
+                userRepository
+                        .findById(loginUserId)
+                        .orElseThrow(
+                                () -> new UserNotFoundException("User ID", loginUserId.toString()));
 
-        if(!followRepository.existsByFollowerAndFollowing(follower, following)){
+        if (!followRepository.existsByFollowerAndFollowing(follower, following)) {
             throw new AlreadyDeleteException();
         }
 
         followRepository.deleteByFollowerAndFollowing(follower, following);
     }
-
 }

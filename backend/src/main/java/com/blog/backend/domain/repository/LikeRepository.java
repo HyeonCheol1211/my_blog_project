@@ -7,14 +7,18 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
-import java.util.Optional;
 
 @Repository
 public interface LikeRepository extends JpaRepository<Like, Long> {
     Long countByPost(Post post);
-    Optional<Like> findByUserAndPost(User user, Post post);
+
     boolean existsByUserAndPost(User user, Post post);
+
     List<Like> findAllByPost(Post post);
+
     boolean existsByUser_IdAndPost_Id(Long userId, Long postId);
+
     void removeByUser_IdAndPost_Id(Long userId, Long postId);
+
+    boolean existsByPost_IdAndUser_Id(Long postId, Long userId);
 }

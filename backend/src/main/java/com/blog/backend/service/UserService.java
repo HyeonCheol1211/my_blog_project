@@ -1,5 +1,20 @@
 package com.blog.backend.service;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.List;
+import java.util.UUID;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+
 import com.blog.backend.domain.Post;
 import com.blog.backend.domain.User;
 import com.blog.backend.domain.repository.FollowRepository;
@@ -9,27 +24,15 @@ import com.blog.backend.domain.repository.UserRepository;
 import com.blog.backend.dto.*;
 import com.blog.backend.exception.DuplicateEmailException;
 import com.blog.backend.exception.UserNotFoundException;
-import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.List;
-import java.util.UUID;
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class UserService {
     private final UserDetailsService userDetailsService;
+
     @Value("${file.dir}")
     private String fileDir;
 
@@ -41,8 +44,10 @@ public class UserService {
 
     public ProfileBasicResponse getProfileBasic(Long userId) {
 
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException("User ID", userId.toString()));
+        User user =
+                userRepository
+                        .findById(userId)
+                        .orElseThrow(() -> new UserNotFoundException("User ID", userId.toString()));
 
         Long followingCount = followRepository.countByFollower(user);
         Long followerCount = followRepository.countByFollowing(user);
@@ -101,10 +106,12 @@ public class UserService {
     }
 
     @Transactional
-    public UserResponse updateProfile(UserUpdateRequest userUpdateRequest, MultipartFile multipartFile,
-            Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException("User ID", userId.toString()));
+    public UserResponse updateProfile(
+            UserUpdateRequest userUpdateRequest, MultipartFile multipartFile, Long userId) {
+        User user =
+                userRepository
+                        .findById(userId)
+                        .orElseThrow(() -> new UserNotFoundException("User ID", userId.toString()));
 
         String password = userUpdateRequest.password();
         String email = userUpdateRequest.email();
@@ -136,11 +143,7 @@ public class UserService {
             user.updateProfileImage(profileImage);
         }
 
-        return UserResponse.builder()
-                .username(user.getUsername())
-                .email(user.getEmail())
-                .build();
-
+        return UserResponse.builder().username(user.getUsername()).email(user.getEmail()).build();
     }
 
     private void deleteOldProfileImage(String profileImage) {
@@ -154,51 +157,54 @@ public class UserService {
     }
 
     public List<FollowerResponse> getFollowers(Long userId) {
-        return followRepository.findAllByFollowing_Id(userId)
-                .stream()
-                .map(follow -> FollowerResponse.builder()
-                        .followerId(follow.getFollowerId())
-                        .profileImageUrl(follow.getFollowerProfileImage())
-                        .username(follow.getFollowerUsername())
-                        .build())
+        return followRepository.findAllByFollowing_Id(userId).stream()
+                .map(
+                        follow ->
+                                FollowerResponse.builder()
+                                        .followerId(follow.getFollowerId())
+                                        .profileImageUrl(follow.getFollowerProfileImage())
+                                        .username(follow.getFollowerUsername())
+                                        .build())
                 .toList();
     }
 
     public List<FollowingResponse> getFollowings(Long userId) {
-        return followRepository.findAllByFollower_Id(userId)
-                .stream()
-                .map(follow -> FollowingResponse.builder()
-                        .followingId(follow.getFollowingId())
-                        .profileImageUrl(follow.getFollowingProfileImage())
-                        .username(follow.getFollowingUsername())
-                        .build())
+        return followRepository.findAllByFollower_Id(userId).stream()
+                .map(
+                        follow ->
+                                FollowingResponse.builder()
+                                        .followingId(follow.getFollowingId())
+                                        .profileImageUrl(follow.getFollowingProfileImage())
+                                        .username(follow.getFollowingUsername())
+                                        .build())
                 .toList();
     }
 
-    public List<PostResponse> getUserPosts(Long userId, Long loginUserId){
+    public List<PostResponse> getUserPosts(Long userId, Long loginUserId) {
         List<Post> posts = List.of();
-        if(loginUserId != null && userId.equals(loginUserId)) {
+        if (loginUserId != null && userId.equals(loginUserId)) {
             posts = postRepository.findAllByUser_Id(userId);
         }
-        
-        if(loginUserId == null || !userId.equals(loginUserId)){
+
+        if (loginUserId == null || !userId.equals(loginUserId)) {
             posts = postRepository.findAllByUser_IdAndPublicStatus(userId, true);
         }
-        
-        return posts.stream()
-                .map(p-> PostResponse.builder()
-                        .id(p.getId())
-                        .title(p.getTitle())
-                        .content(p.getContent())
-                        .authorId(p.getUserId())
-                        .author(p.getUsername())
-                        .categoryName(p.getCategoryName())
-                        .publicStatus(p.isPublicStatus())
-                        .createdAt(p.getCreatedAt())
-                        .updatedAt(p.getUpdatedAt())
-                        .likeCount(likeRepository.countByPost(p))
-                        .build()
-                ).toList();
-    }
 
+        return posts.stream()
+                .map(
+                        p ->
+                                PostResponse.builder()
+                                        .id(p.getId())
+                                        .title(p.getTitle())
+                                        .content(p.getContent())
+                                        .authorId(p.getUserId())
+                                        .author(p.getUsername())
+                                        .categoryName(p.getCategoryName())
+                                        .publicStatus(p.isPublicStatus())
+                                        .createdAt(p.getCreatedAt())
+                                        .updatedAt(p.getUpdatedAt())
+                                        .likeCount(likeRepository.countByPost(p))
+                                        .build())
+                .toList();
+    }
 }

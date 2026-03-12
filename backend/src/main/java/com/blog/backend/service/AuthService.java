@@ -1,5 +1,15 @@
 package com.blog.backend.service;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.UUID;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+
 import com.blog.backend.domain.User;
 import com.blog.backend.domain.repository.UserRepository;
 import com.blog.backend.dto.LoginResponse;
@@ -11,16 +21,8 @@ import com.blog.backend.exception.DuplicateUsernameException;
 import com.blog.backend.exception.PasswordNotCorrectException;
 import com.blog.backend.exception.UserNotFoundException;
 import com.blog.backend.utils.JwtUtil;
-import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.UUID;
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -46,27 +48,30 @@ public class AuthService {
         String profileImage = imageValidate(multipartFile);
 
         String encodedPassword = passwordEncoder.encode(userSignupRequest.password());
-        User user = User.builder()
-                .email(userSignupRequest.email())
-                .password(encodedPassword)
-                .username(userSignupRequest.username())
-                .profileImage((profileImage==null) ? "/images/profiles/basic_profile_image.png" : profileImage)
-                .bio(userSignupRequest.bio())
-                .build();
+        User user =
+                User.builder()
+                        .email(userSignupRequest.email())
+                        .password(encodedPassword)
+                        .username(userSignupRequest.username())
+                        .profileImage(
+                                (profileImage == null)
+                                        ? "/images/profiles/basic_profile_image.png"
+                                        : profileImage)
+                        .bio(userSignupRequest.bio())
+                        .build();
 
         userRepository.save(user);
 
-        return UserResponse.builder()
-                .username(user.getUsername())
-                .email(user.getEmail())
-                .build();
+        return UserResponse.builder().username(user.getUsername()).email(user.getEmail()).build();
     }
 
     public LoginResponse login(UserLoginRequest userLoginRequest) {
         String username = userLoginRequest.username();
         String password = userLoginRequest.password();
-        User selectedUser = userRepository.findByUsername(username)
-                .orElseThrow(() -> new UserNotFoundException("Username", username));
+        User selectedUser =
+                userRepository
+                        .findByUsername(username)
+                        .orElseThrow(() -> new UserNotFoundException("Username", username));
 
         if (!passwordEncoder.matches(password, selectedUser.getPassword())) {
             throw new PasswordNotCorrectException(password);
@@ -107,13 +112,13 @@ public class AuthService {
     }
 
     public void checkUsername(String username) {
-        if(userRepository.existsByUsername(username)){
+        if (userRepository.existsByUsername(username)) {
             throw new DuplicateUsernameException(username);
         }
     }
 
     public void checkEmail(String email) {
-        if(userRepository.existsByEmail(email)){
+        if (userRepository.existsByEmail(email)) {
             throw new DuplicateEmailException(email);
         }
     }

@@ -1,8 +1,8 @@
 package com.blog.backend.dto;
 
-import lombok.Builder;
-
 import java.time.LocalDateTime;
+
+import lombok.Builder;
 
 @Builder
 public record ProfileBasicResponse(
@@ -13,6 +13,4 @@ public record ProfileBasicResponse(
         String profileImageUrl,
         LocalDateTime createdAt,
         Long followerCount,
-        Long followingCount
-) {
-}
+        Long followingCount) {}

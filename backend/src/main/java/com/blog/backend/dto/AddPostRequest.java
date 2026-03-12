@@ -4,9 +4,4 @@ import lombok.Builder;
 
 @Builder
 public record AddPostRequest(
-    String categoryName,
-    String title,
-    String content,
-    boolean publicStatus
-){
-}
+        String categoryName, String title, String content, boolean publicStatus) {}

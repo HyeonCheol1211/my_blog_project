@@ -1,16 +1,18 @@
 package com.blog.backend.domain;
 
+import java.time.LocalDateTime;
+
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import java.time.LocalDateTime;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Entity
 @NoArgsConstructor
@@ -46,8 +48,7 @@ public class Post {
     @CreationTimestamp
     private LocalDateTime createdAt;
 
-    @UpdateTimestamp
-    private LocalDateTime updatedAt;
+    @UpdateTimestamp private LocalDateTime updatedAt;
 
     public void update(Category category, String title, String content, Boolean publicStatus) {
         this.category = category;
@@ -56,19 +57,19 @@ public class Post {
         this.publicStatus = publicStatus;
     }
 
-    public Long getUserId(){
+    public Long getUserId() {
         return user.getId();
     }
 
-    public String getUsername(){
+    public String getUsername() {
         return user.getUsername();
     }
 
-    public String getCategoryName(){
+    public String getCategoryName() {
         return category.getName();
     }
 
-    public String getProfileImage(){
+    public String getProfileImage() {
         return user.getProfileImage();
     }
 }
