@@ -1,13 +1,15 @@
 package com.blog.backend.domain;
 
+import java.time.LocalDateTime;
+
 import jakarta.persistence.*;
+
+import org.hibernate.annotations.CreationTimestamp;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.CreationTimestamp;
-
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "users")
@@ -34,9 +36,7 @@ public class User {
 
     private String bio;
 
-    @CreationTimestamp
-    private LocalDateTime createdAt;
-
+    @CreationTimestamp private LocalDateTime createdAt;
 
     public void updateEmail(String email) {
         this.email = email;
@@ -55,6 +55,6 @@ public class User {
     }
 
     public boolean canDeleteImage() {
-       return !profileImage.equals("/images/profiles/basic_profile_image.png");
+        return !profileImage.equals("/images/profiles/basic_profile_image.png");
     }
 }

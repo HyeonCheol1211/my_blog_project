@@ -1,15 +1,17 @@
 package com.blog.backend.domain;
 
+import java.time.LocalDateTime;
+
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
-import java.time.LocalDateTime;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Entity
 @NoArgsConstructor
@@ -35,33 +37,32 @@ public class Comment {
     @Column(columnDefinition = "TEXT", nullable = false)
     private String content;
 
-    @CreationTimestamp
-    private LocalDateTime createdAt;
+    @CreationTimestamp private LocalDateTime createdAt;
 
     @Builder
-    public Comment(Post post, User user, String content){
+    public Comment(Post post, User user, String content) {
         this.post = post;
         this.user = user;
         this.content = content;
     }
 
-    public void updateComment(String content){
+    public void updateComment(String content) {
         this.content = content;
     }
 
-    public Long getUserId(){
+    public Long getUserId() {
         return user.getId();
     }
 
-    public String getUsername(){
+    public String getUsername() {
         return user.getUsername();
     }
 
-    public Long getPostId(){
+    public Long getPostId() {
         return post.getId();
     }
 
-    public String getPostTitle(){
+    public String getPostTitle() {
         return post.getTitle();
     }
 

@@ -1,12 +1,14 @@
 package com.blog.backend.domain;
 
 import jakarta.persistence.*;
+
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.OnDelete;
-import org.hibernate.annotations.OnDeleteAction;
 
 @Entity
 @Table(name = "categories")
@@ -22,19 +24,18 @@ public class Category {
     @Column(nullable = false)
     private String name;
 
-    @ManyToOne(fetch=FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     @OnDelete(action = OnDeleteAction.CASCADE)
     User user;
 
-    @Builder.Default
-    Long count=0L;
+    @Builder.Default Long count = 0L;
 
-    public void increaseCount(){
+    public void increaseCount() {
         count++;
     }
 
-    public void decreaseCount(){
+    public void decreaseCount() {
         count--;
     }
 }

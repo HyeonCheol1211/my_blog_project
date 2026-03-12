@@ -1,22 +1,23 @@
 package com.blog.backend.utils;
 
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.security.Keys;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
-
 import java.security.Key;
 import java.util.Date;
 
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.Keys;
+
 @Component
-public class JwtUtil{
+public class JwtUtil {
     @Value("${jwt.secret}")
     private String secretKey;
 
     private Long expiredMs = 1000 * 60 * 60L;
 
-    public String createToken(Long userId){
+    public String createToken(Long userId) {
         Key key = Keys.hmacShaKeyFor(secretKey.getBytes());
 
         return Jwts.builder()

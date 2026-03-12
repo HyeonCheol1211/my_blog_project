@@ -1,8 +1,8 @@
 package com.blog.backend.dto;
 
-import lombok.Builder;
-
 import java.time.LocalDateTime;
+
+import lombok.Builder;
 
 @Builder
 public record PostResponse(
@@ -16,5 +16,4 @@ public record PostResponse(
         LocalDateTime createdAt,
         LocalDateTime updatedAt,
         Long likeCount,
-        String profileImageUrl) {
-}
+        String profileImageUrl) {}

@@ -11,7 +11,7 @@ public class WebConfig implements WebMvcConfigurer {
     private String fileDir;
 
     @Override
-    public void addResourceHandlers(ResourceHandlerRegistry registry){
+    public void addResourceHandlers(ResourceHandlerRegistry registry) {
         registry.addResourceHandler("/images/profiles/**")
                 .addResourceLocations("file://" + fileDir);
     }

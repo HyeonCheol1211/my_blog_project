@@ -1,15 +1,17 @@
 package com.blog.backend.domain;
 
+import java.time.LocalDateTime;
+
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
-import java.time.LocalDateTime;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Entity
 @NoArgsConstructor
@@ -27,20 +29,18 @@ public class Like {
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Post post;
 
-    @ManyToOne(fetch=FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     @OnDelete(action = OnDeleteAction.CASCADE)
     private User user;
 
+    @CreationTimestamp private LocalDateTime createdAt;
 
-    @CreationTimestamp
-    private LocalDateTime createdAt;
-
-    public Long getUserId(){
+    public Long getUserId() {
         return user.getId();
     }
 
-    public String getProfileImage(){
+    public String getProfileImage() {
         return user.getProfileImage();
     }
 
