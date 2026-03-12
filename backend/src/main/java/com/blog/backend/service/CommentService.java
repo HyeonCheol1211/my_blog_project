@@ -1,10 +1,5 @@
 package com.blog.backend.service;
 
-import java.util.List;
-
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.blog.backend.domain.Comment;
 import com.blog.backend.domain.User;
 import com.blog.backend.domain.repository.CommentRepository;
@@ -16,8 +11,11 @@ import com.blog.backend.dto.UpdateCommentRequest;
 import com.blog.backend.exception.AuthorOnlyException;
 import com.blog.backend.exception.CommentNotFoundException;
 import com.blog.backend.exception.UserNotFoundException;
-
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -73,6 +71,7 @@ public class CommentService {
                 .map(
                         c ->
                                 CommentDetailResponse.builder()
+                                        .profileImageUrl(c.getProfileImage())
                                         .commentId(c.getId())
                                         .author(c.getUsername())
                                         .postId(c.getPostId())
