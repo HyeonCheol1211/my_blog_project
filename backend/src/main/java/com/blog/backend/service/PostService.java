@@ -1,16 +1,14 @@
 package com.blog.backend.service;
 
-import java.util.List;
-
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.blog.backend.domain.*;
 import com.blog.backend.domain.repository.*;
 import com.blog.backend.dto.*;
 import com.blog.backend.exception.*;
-
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -296,7 +294,7 @@ public class PostService {
         Like like = Like.builder().post(post).user(user).build();
 
         likeRepository.save(like);
-
-        return LikeResponse.builder().userId(userId).postId(postId).build();
+        Long likeCount = likeRepository.countByPost(post);
+        return LikeResponse.builder().totalCount(likeCount).build();
     }
 }
