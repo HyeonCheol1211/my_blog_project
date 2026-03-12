@@ -166,4 +166,18 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(HttpStatus.NO_CONTENT).body(errorResponse);
     }
+
+    @ExceptionHandler(CategoryNotFoundException.class)
+    public ResponseEntity<ErrorResponse> CategoryNotFoundException(CommentNotFoundException e) {
+        System.out.println("404 에러 발생: " + e.getMessage());
+
+        ErrorResponse errorResponse =
+                ErrorResponse.builder()
+                        .status(HttpStatus.NO_CONTENT.value())
+                        .error(HttpStatus.NO_CONTENT.name())
+                        .message(e.getMessage())
+                        .build();
+
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).body(errorResponse);
+    }
 }

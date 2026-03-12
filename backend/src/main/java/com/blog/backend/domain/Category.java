@@ -38,4 +38,8 @@ public class Category {
     public void decreaseCount() {
         count--;
     }
+
+    public Long getUserId() {
+        return user.getId();
+    }
 }
