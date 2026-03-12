@@ -27,7 +27,10 @@ public class CategoryService {
         return categoryRepository.findAllByUser_Id(userId).stream()
                 .map(
                         category ->
-                                CategoryResponse.builder().id(category.getId()).categoryName(category.getName()).build())
+                                CategoryResponse.builder()
+                                        .id(category.getId())
+                                        .categoryName(category.getName())
+                                        .build())
                 .toList();
     }
 
@@ -39,11 +42,11 @@ public class CategoryService {
         Long authorId = category.getUserId();
         List<Post> posts = List.of();
         if (authorId.equals(userId)) {
-            posts = postRepository.findAllByUser_Id(authorId);
+            posts = postRepository.findAllByCategory_Id(categoryId);
         }
 
         if (!authorId.equals(userId)) {
-            posts = postRepository.findAllByUser_IdAndPublicStatus(authorId, true);
+            posts = postRepository.findAllByCategory_IdAndPublicStatus(categoryId, true);
         }
 
         return posts.stream()
