@@ -19,5 +19,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 
     List<Post> findAllByUser_IdAndPublicStatus(Long userId, boolean b);
 
-    boolean existsByIdAndUser_Id(Long postId, Long userId);
+    List<Post> findAllByCategory_IdAndPublicStatus(Long categoryId, boolean b);
+
+    List<Post> findAllByCategory_Id(Long categoryId);
 }
