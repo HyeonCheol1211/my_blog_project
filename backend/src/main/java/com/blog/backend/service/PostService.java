@@ -1,14 +1,16 @@
 package com.blog.backend.service;
 
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.blog.backend.domain.*;
 import com.blog.backend.domain.repository.*;
 import com.blog.backend.dto.*;
 import com.blog.backend.exception.*;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -48,10 +50,8 @@ public class PostService {
                 .content(post.getContent())
                 .authorId(post.getUserId())
                 .author(post.getUsername())
-                .categoryName(post.getCategoryName())
                 .publicStatus(post.isPublicStatus())
                 .createdAt(post.getCreatedAt())
-                .updatedAt(post.getUpdatedAt())
                 .likeCount(0L)
                 .build();
     }
@@ -134,10 +134,8 @@ public class PostService {
                 .content(content)
                 .authorId(userId)
                 .author(user.getUsername())
-                .categoryName(category.getName())
                 .publicStatus(publicStatus)
                 .createdAt(post.getCreatedAt())
-                .updatedAt(post.getUpdatedAt())
                 .likeCount(likeCount)
                 .build();
     }
@@ -205,10 +203,8 @@ public class PostService {
                                         .content(p.getContent())
                                         .authorId(p.getUserId())
                                         .author(p.getUsername())
-                                        .categoryName(p.getCategoryName())
                                         .publicStatus(p.isPublicStatus())
                                         .createdAt(p.getCreatedAt())
-                                        .updatedAt(p.getUpdatedAt())
                                         .likeCount(likeRepository.countByPost(p))
                                         .profileImageUrl(p.getProfileImage())
                                         .build())

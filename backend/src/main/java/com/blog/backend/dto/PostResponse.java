@@ -11,9 +11,7 @@ public record PostResponse(
         String content,
         Long authorId,
         String author,
-        String categoryName,
         boolean publicStatus,
         LocalDateTime createdAt,
-        LocalDateTime updatedAt,
         Long likeCount,
         String profileImageUrl) {}
