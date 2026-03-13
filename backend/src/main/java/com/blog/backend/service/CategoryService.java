@@ -1,5 +1,10 @@
 package com.blog.backend.service;
 
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.blog.backend.domain.Category;
 import com.blog.backend.domain.Post;
 import com.blog.backend.domain.repository.CategoryRepository;
@@ -8,11 +13,8 @@ import com.blog.backend.domain.repository.PostRepository;
 import com.blog.backend.dto.CategoryResponse;
 import com.blog.backend.dto.PostResponse;
 import com.blog.backend.exception.CategoryNotFoundException;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
