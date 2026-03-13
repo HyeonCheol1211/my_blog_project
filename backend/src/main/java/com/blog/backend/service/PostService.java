@@ -1,7 +1,10 @@
 package com.blog.backend.service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -191,8 +194,18 @@ public class PostService {
         return userId.equals(post.getUserId());
     }
 
-    public List<PostResponse> getPosts() {
-        List<Post> posts = postRepository.findAllByPublicStatusTrue();
+    public List<PostResponse> getPosts(String sort, LocalDateTime startDate, Pageable pageable) {
+        List<Post> posts = List.of();
+
+        if ("latest".equals(sort)) {
+            posts = postRepository.findAllByPublicStatusTrue();
+        }
+
+        if ("likes".equals(sort)) {
+            PageRequest cleanPageable =
+                    PageRequest.of(pageable.getPageNumber(), pageable.getPageSize());
+            posts = postRepository.findPublicPostsOrderByPeriodLike(startDate, cleanPageable);
+        }
 
         return posts.stream()
                 .map(
