@@ -2,10 +2,7 @@ package com.blog.backend.service;
 
 import com.blog.backend.domain.Post;
 import com.blog.backend.domain.User;
-import com.blog.backend.domain.repository.FollowRepository;
-import com.blog.backend.domain.repository.LikeRepository;
-import com.blog.backend.domain.repository.PostRepository;
-import com.blog.backend.domain.repository.UserRepository;
+import com.blog.backend.domain.repository.*;
 import com.blog.backend.dto.*;
 import com.blog.backend.exception.DuplicateEmailException;
 import com.blog.backend.exception.UserNotFoundException;
@@ -38,6 +35,7 @@ public class UserService {
     private final FollowRepository followRepository;
     private final PostRepository postRepository;
     private final LikeRepository likeRepository;
+    private final CategoryRepository categoryRepository;
     private final BCryptPasswordEncoder passwordEncoder;
 
     public ProfileBasicResponse getProfileBasic(Long userId) {
@@ -202,6 +200,37 @@ public class UserService {
                                         .createdAt(p.getCreatedAt())
                                         .likeCount(likeRepository.countByPost(p))
                                         .build())
+                .toList();
+    }
+
+    public List<CategoryResponse> getCategoryList(Long userId, Long loginUserId) {
+        if (userId.equals(loginUserId)) {
+            return categoryRepository.findAllByUser_Id(userId).stream()
+                    .map(
+                            category ->
+                                    CategoryResponse.builder()
+                                            .postsCount(postRepository.countByCategory(category))
+                                            .id(category.getId())
+                                            .categoryName(category.getName())
+                                            .build())
+                    .toList();
+        }
+
+        return categoryRepository.findAllByUser_Id(userId).stream()
+                .map(
+                        category -> {
+                            Long postsCount =
+                                    postRepository.countByCategoryAndPublicStatus(category, true);
+                            if (postsCount > 0) {
+                                return CategoryResponse.builder()
+                                        .postsCount(postsCount)
+                                        .id(category.getId())
+                                        .categoryName(category.getName())
+                                        .build();
+                            }
+                            return null;
+                        })
+                .filter(java.util.Objects::nonNull)
                 .toList();
     }
 }

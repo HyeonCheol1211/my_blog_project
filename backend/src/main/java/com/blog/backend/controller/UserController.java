@@ -61,4 +61,12 @@ public class UserController {
         List<PostResponse> getPostResponse = userService.getUserPosts(userId, loginUserId);
         return ResponseEntity.ok(getPostResponse);
     }
+
+    @GetMapping("{userId}/categories")
+    public ResponseEntity<List<CategoryResponse>> getCategoryList(
+            @PathVariable Long userId, @AuthenticationPrincipal Long loginUserId) {
+
+        List<CategoryResponse> categoryResponses = userService.getCategoryList(userId, loginUserId);
+        return ResponseEntity.ok(categoryResponses);
+    }
 }
