@@ -50,6 +50,7 @@ public class CommentService {
                 .build();
     }
 
+    @Transactional
     public void deleteComment(Long commentId, Long userId) {
         Comment comment =
                 commentRepository
