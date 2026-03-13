@@ -10,7 +10,6 @@ import com.blog.backend.domain.Post;
 import com.blog.backend.domain.repository.CategoryRepository;
 import com.blog.backend.domain.repository.LikeRepository;
 import com.blog.backend.domain.repository.PostRepository;
-import com.blog.backend.dto.CategoryResponse;
 import com.blog.backend.dto.PostResponse;
 import com.blog.backend.exception.CategoryNotFoundException;
 
@@ -23,18 +22,6 @@ public class CategoryService {
     private final CategoryRepository categoryRepository;
     private final PostRepository postRepository;
     private final LikeRepository likeRepository;
-
-    public List<CategoryResponse> getCategoryList(Long userId) {
-
-        return categoryRepository.findAllByUser_Id(userId).stream()
-                .map(
-                        category ->
-                                CategoryResponse.builder()
-                                        .id(category.getId())
-                                        .categoryName(category.getName())
-                                        .build())
-                .toList();
-    }
 
     public List<PostResponse> getCategoryPosts(Long categoryId, Long userId) {
         Category category =

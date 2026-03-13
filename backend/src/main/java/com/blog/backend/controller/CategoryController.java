@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.blog.backend.dto.CategoryResponse;
 import com.blog.backend.dto.PostResponse;
 import com.blog.backend.service.CategoryService;
 
@@ -20,14 +19,6 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/api/categories/")
 public class CategoryController {
     private final CategoryService categoryService;
-
-    @GetMapping("/list")
-    public ResponseEntity<List<CategoryResponse>> getCategoryList(
-            @AuthenticationPrincipal Long userId) {
-
-        List<CategoryResponse> categoryResponses = categoryService.getCategoryList(userId);
-        return ResponseEntity.ok(categoryResponses);
-    }
 
     @GetMapping("/{categoryId}/posts")
     public ResponseEntity<List<PostResponse>> getCategoryPosts(
