@@ -34,9 +34,8 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 
     @Query(
             "SELECT p FROM Post p "
-                    + "JOIN Like l ON l.post.id = p.id "
+                    + "LEFT JOIN Like l ON l.post.id = p.id AND l.createdAt >= :startDate "
                     + "WHERE p.publicStatus = true "
-                    + "AND l.createdAt >= :startDate "
                     + "GROUP BY p.id "
                     + "ORDER BY COUNT(l.id) DESC ")
     List<Post> findPublicPostsOrderByPeriodLike(
