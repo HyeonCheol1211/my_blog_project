@@ -6,7 +6,6 @@ import java.util.List;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -254,7 +253,7 @@ public class PostService {
                         .orElseThrow(() -> new PostNotFoundException(postId));
 
         if (!post.isPublicStatus() && !post.getUserId().equals(userId)) {
-            throw new AccessDeniedException("접근이 제한된 게시글입니다.");
+            throw new AuthorOnlyException(post.getUserId());
         }
         List<Comment> comments = commentRepository.findAllByPost_Id(postId);
 
@@ -286,7 +285,7 @@ public class PostService {
                         .findById(postId)
                         .orElseThrow(() -> new PostNotFoundException(postId));
         if (!post.isPublicStatus() && !post.getUserId().equals(userId)) {
-            throw new AccessDeniedException("접근이 제한된 게시글입니다.");
+            throw new AuthorOnlyException(post.getUserId());
         }
         Comment comment = Comment.builder().user(user).post(post).content(content).build();
 
@@ -314,7 +313,7 @@ public class PostService {
                         .orElseThrow(() -> new UserNotFoundException("User ID", userId.toString()));
 
         if (!post.isPublicStatus() && !post.getUserId().equals(userId)) {
-            throw new AccessDeniedException("접근이 제한된 게시글입니다.");
+            throw new AuthorOnlyException(post.getUserId());
         }
 
         try {

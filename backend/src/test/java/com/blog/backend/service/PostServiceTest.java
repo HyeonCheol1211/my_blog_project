@@ -15,7 +15,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.security.access.AccessDeniedException;
 
 import com.blog.backend.domain.Category;
 import com.blog.backend.domain.Comment;
@@ -147,8 +146,8 @@ class PostServiceTest {
         when(postRepository.findById(20L)).thenReturn(Optional.of(privatePost));
 
         assertThatThrownBy(() -> postService.getPostComments(20L, 2L))
-                .isInstanceOf(AccessDeniedException.class)
-                .hasMessageContaining("접근이 제한된 게시글");
+                .isInstanceOf(AuthorOnlyException.class)
+                .hasMessageContaining("작성자만 접근");
 
         verify(commentRepository, never()).findAllByPost_Id(20L);
     }
@@ -178,8 +177,8 @@ class PostServiceTest {
         when(postRepository.findById(30L)).thenReturn(Optional.of(privatePost));
 
         assertThatThrownBy(() -> postService.addComment(30L, new AddCommentRequest("blocked"), 2L))
-                .isInstanceOf(AccessDeniedException.class)
-                .hasMessageContaining("접근이 제한된 게시글");
+                .isInstanceOf(AuthorOnlyException.class)
+                .hasMessageContaining("작성자만 접근");
 
         verify(commentRepository, never()).save(any(Comment.class));
     }
@@ -209,8 +208,8 @@ class PostServiceTest {
         when(userRepository.findById(2L)).thenReturn(Optional.of(reader));
 
         assertThatThrownBy(() -> postService.addLike(40L, 2L))
-                .isInstanceOf(AccessDeniedException.class)
-                .hasMessageContaining("접근이 제한된 게시글");
+                .isInstanceOf(AuthorOnlyException.class)
+                .hasMessageContaining("작성자만 접근");
 
         verify(likeRepository, never()).save(any(Like.class));
     }

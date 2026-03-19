@@ -112,7 +112,9 @@ class PostControllerIntegrationTest {
 
         mockMvc.perform(get("/api/posts/{postId}/comments", post.getId()))
                 .andExpect(status().isForbidden())
-                .andExpect(jsonPath("$.message").value("접근이 제한된 게시글입니다."));
+                .andExpect(
+                        jsonPath("$.message")
+                                .value(org.hamcrest.Matchers.containsString("작성자만 접근")));
     }
 
     @Test
@@ -127,7 +129,9 @@ class PostControllerIntegrationTest {
                         get("/api/posts/{postId}/comments", post.getId())
                                 .header(AUTHORIZATION, bearer(reader.getId())))
                 .andExpect(status().isForbidden())
-                .andExpect(jsonPath("$.message").value("접근이 제한된 게시글입니다."));
+                .andExpect(
+                        jsonPath("$.message")
+                                .value(org.hamcrest.Matchers.containsString("작성자만 접근")));
     }
 
     @Test
@@ -158,7 +162,9 @@ class PostControllerIntegrationTest {
                                 .contentType(APPLICATION_JSON)
                                 .content("{\"content\":\"blocked\"}"))
                 .andExpect(status().isForbidden())
-                .andExpect(jsonPath("$.message").value("접근이 제한된 게시글입니다."));
+                .andExpect(
+                        jsonPath("$.message")
+                                .value(org.hamcrest.Matchers.containsString("작성자만 접근")));
     }
 
     @Test
@@ -189,7 +195,9 @@ class PostControllerIntegrationTest {
                         post("/api/posts/{postId}/like", post.getId())
                                 .header(AUTHORIZATION, bearer(reader.getId())))
                 .andExpect(status().isForbidden())
-                .andExpect(jsonPath("$.message").value("접근이 제한된 게시글입니다."));
+                .andExpect(
+                        jsonPath("$.message")
+                                .value(org.hamcrest.Matchers.containsString("작성자만 접근")));
     }
 
     @Test
