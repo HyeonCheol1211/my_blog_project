@@ -1,20 +1,18 @@
 package com.blog.backend.service;
 
-import java.time.LocalDateTime;
-import java.util.List;
-
+import com.blog.backend.domain.*;
+import com.blog.backend.domain.repository.*;
+import com.blog.backend.dto.*;
+import com.blog.backend.exception.*;
+import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.blog.backend.domain.*;
-import com.blog.backend.domain.repository.*;
-import com.blog.backend.dto.*;
-import com.blog.backend.exception.*;
-
-import lombok.RequiredArgsConstructor;
+import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -265,7 +263,6 @@ public class PostService {
                                         .profileImageUrl(c.getProfileImage())
                                         .commentId(c.getId())
                                         .author(c.getUsername())
-                                        .postId(c.getPostId())
                                         .content(c.getContent())
                                         .build())
                 .toList();
@@ -295,7 +292,6 @@ public class PostService {
                 .authorId(user.getId())
                 .profileImageUrl(user.getProfileImage())
                 .commentId(comment.getId())
-                .postId(postId)
                 .author(user.getUsername())
                 .content(content)
                 .build();

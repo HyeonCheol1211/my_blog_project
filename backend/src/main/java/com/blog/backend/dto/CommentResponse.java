@@ -8,5 +8,4 @@ public record CommentResponse(
         String profileImageUrl,
         String author,
         Long authorId,
-        Long postId,
         String content) {}
