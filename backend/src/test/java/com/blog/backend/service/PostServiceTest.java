@@ -86,6 +86,21 @@ class PostServiceTest {
     }
 
     @Test
+    void getPostShouldRejectPrivatePostWithoutAuthentication() {
+        User author = user(1L, "author");
+        Category category = category(10L, "secret", author, 1L);
+        Post privatePost = post(201L, author, category, false);
+
+        when(postRepository.findById(201L)).thenReturn(Optional.of(privatePost));
+
+        assertThatThrownBy(() -> postService.getPost(201L, null))
+                .isInstanceOf(AuthorOnlyException.class)
+                .hasMessageContaining("작성자만 접근");
+
+        verify(userRepository, never()).findById(any());
+    }
+
+    @Test
     void getPostShouldIncludeLikedStateForAuthor() {
         User author = user(1L, "author");
         Category category = category(10L, "public", author, 1L);
@@ -105,7 +120,14 @@ class PostServiceTest {
 
     @Test
     void addLikeShouldThrowWhenDuplicateLikeExists() {
-        when(postRepository.findById(9L)).thenReturn(Optional.of(post(9L, user(1L, "a"), category(1L, "c", user(1L, "a"), 1L), true)));
+        when(postRepository.findById(9L))
+                .thenReturn(
+                        Optional.of(
+                                post(
+                                        9L,
+                                        user(1L, "a"),
+                                        category(1L, "c", user(1L, "a"), 1L),
+                                        true)));
         when(userRepository.findById(2L)).thenReturn(Optional.of(user(2L, "reader")));
         when(likeRepository.existsByPost_IdAndUser_Id(9L, 2L)).thenReturn(true);
 

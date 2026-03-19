@@ -1,5 +1,6 @@
 package com.blog.backend.service;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,9 +37,13 @@ public class FollowService {
         if (followRepository.existsByFollowerAndFollowing(follower, following)) {
             throw new AlreadyAddException();
         }
-        Follow follow = Follow.builder().follower(follower).following(following).build();
 
-        followRepository.save(follow);
+        try {
+            Follow follow = Follow.builder().follower(follower).following(following).build();
+            followRepository.save(follow);
+        } catch (DataIntegrityViolationException e) {
+            throw new AlreadyAddException();
+        }
 
         return FollowResponse.builder()
                 .followerUsername(follower.getUsername())

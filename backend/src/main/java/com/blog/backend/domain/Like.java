@@ -18,7 +18,12 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 @Getter
-@Table(name = "likes")
+@Table(
+        name = "likes",
+        uniqueConstraints =
+                @UniqueConstraint(
+                        name = "uk_like_user_post",
+                        columnNames = {"user_id", "post_id"}))
 public class Like {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

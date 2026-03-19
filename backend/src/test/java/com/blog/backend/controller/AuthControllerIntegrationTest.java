@@ -45,7 +45,8 @@ class AuthControllerIntegrationTest {
 
         mockMvc.perform(get("/api/auth/check-email/{email}", "author@test.com"))
                 .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.message").value(org.hamcrest.Matchers.containsString("이미 존재")));
+                .andExpect(
+                        jsonPath("$.message").value(org.hamcrest.Matchers.containsString("이미 존재")));
     }
 
     @Test
@@ -68,7 +69,11 @@ class AuthControllerIntegrationTest {
 
     @Test
     void shouldLoginAndReturnToken() throws Exception {
-        saveUser("login-user", "login@test.com", new org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder().encode("pw"));
+        saveUser(
+                "login-user",
+                "login@test.com",
+                new org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder()
+                        .encode("pw"));
 
         mockMvc.perform(
                         post("/api/auth/login")

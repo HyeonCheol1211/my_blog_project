@@ -3,6 +3,7 @@ package com.blog.backend.service;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -187,7 +188,7 @@ public class PostService {
         if (post.isPublicStatus()) {
             return true;
         }
-        if (userId == 0L) {
+        if (userId == null || userId == 0L) {
             return false;
         }
 
@@ -306,9 +307,13 @@ public class PostService {
             throw new AlreadyAddException();
         }
 
-        Like like = Like.builder().post(post).user(user).build();
+        try {
+            Like like = Like.builder().post(post).user(user).build();
+            likeRepository.save(like);
+        } catch (DataIntegrityViolationException e) {
+            throw new AlreadyAddException();
+        }
 
-        likeRepository.save(like);
         Long likeCount = likeRepository.countByPost(post);
         return LikeResponse.builder().totalCount(likeCount).build();
     }

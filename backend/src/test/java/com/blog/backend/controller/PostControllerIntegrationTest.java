@@ -69,7 +69,9 @@ class PostControllerIntegrationTest {
 
         mockMvc.perform(get("/api/posts/{postId}", post.getId()))
                 .andExpect(status().isForbidden())
-                .andExpect(jsonPath("$.message").value(org.hamcrest.Matchers.containsString("작성자만 접근")));
+                .andExpect(
+                        jsonPath("$.message")
+                                .value(org.hamcrest.Matchers.containsString("작성자만 접근")));
     }
 
     @Test
@@ -93,7 +95,9 @@ class PostControllerIntegrationTest {
         Category category = saveCategory(author, "auth", 1L);
         Post post = savePost(author, category, true);
 
-        mockMvc.perform(post("/api/posts/{postId}/like", post.getId()).header(AUTHORIZATION, "Bearer "))
+        mockMvc.perform(
+                        post("/api/posts/{postId}/like", post.getId())
+                                .header(AUTHORIZATION, "Bearer "))
                 .andExpect(status().isUnauthorized());
     }
 
