@@ -14,8 +14,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.DataIntegrityViolationException;
 
 import com.blog.backend.domain.Category;
+import com.blog.backend.domain.Comment;
+import com.blog.backend.domain.Like;
 import com.blog.backend.domain.Post;
 import com.blog.backend.domain.User;
 import com.blog.backend.domain.repository.CategoryRepository;
@@ -23,6 +26,9 @@ import com.blog.backend.domain.repository.CommentRepository;
 import com.blog.backend.domain.repository.LikeRepository;
 import com.blog.backend.domain.repository.PostRepository;
 import com.blog.backend.domain.repository.UserRepository;
+import com.blog.backend.dto.AddCommentRequest;
+import com.blog.backend.dto.CommentResponse;
+import com.blog.backend.dto.LikeResponse;
 import com.blog.backend.dto.PostDetailResponse;
 import com.blog.backend.dto.PostResponse;
 import com.blog.backend.dto.UpdatePostRequest;
@@ -120,20 +126,106 @@ class PostServiceTest {
 
     @Test
     void addLikeShouldThrowWhenDuplicateLikeExists() {
-        when(postRepository.findById(9L))
-                .thenReturn(
-                        Optional.of(
-                                post(
-                                        9L,
-                                        user(1L, "a"),
-                                        category(1L, "c", user(1L, "a"), 1L),
-                                        true)));
+        Post post = post(9L, user(1L, "a"), category(1L, "c", user(1L, "a"), 1L), true);
+
+        when(postRepository.findById(9L)).thenReturn(Optional.of(post));
         when(userRepository.findById(2L)).thenReturn(Optional.of(user(2L, "reader")));
-        when(likeRepository.existsByPost_IdAndUser_Id(9L, 2L)).thenReturn(true);
+        when(likeRepository.save(any(Like.class)))
+                .thenThrow(new DataIntegrityViolationException("duplicate"));
 
         assertThatThrownBy(() -> postService.addLike(9L, 2L))
                 .isInstanceOf(AlreadyAddException.class)
                 .hasMessageContaining("이미 처리된 요청");
+    }
+
+    @Test
+    void getPostCommentsShouldRejectPrivatePostForAnotherUser() {
+        User author = user(1L, "author");
+        Post privatePost = post(20L, author, category(10L, "secret", author, 1L), false);
+
+        when(postRepository.findById(20L)).thenReturn(Optional.of(privatePost));
+
+        assertThatThrownBy(() -> postService.getPostComments(20L, 2L))
+                .isInstanceOf(AuthorOnlyException.class)
+                .hasMessageContaining("작성자만 접근");
+
+        verify(commentRepository, never()).findAllByPost_Id(20L);
+    }
+
+    @Test
+    void getPostCommentsShouldAllowAuthorToViewPrivatePostComments() {
+        User author = user(1L, "author");
+        Post privatePost = post(21L, author, category(10L, "secret", author, 1L), false);
+        Comment comment = Comment.builder().user(author).post(privatePost).content("hello").build();
+
+        when(postRepository.findById(21L)).thenReturn(Optional.of(privatePost));
+        when(commentRepository.findAllByPost_Id(21L)).thenReturn(java.util.List.of(comment));
+
+        java.util.List<CommentResponse> responses = postService.getPostComments(21L, 1L);
+
+        assertThat(responses).hasSize(1);
+        assertThat(responses.get(0).content()).isEqualTo("hello");
+    }
+
+    @Test
+    void addCommentShouldRejectPrivatePostForAnotherUser() {
+        User author = user(1L, "author");
+        User reader = user(2L, "reader");
+        Post privatePost = post(30L, author, category(10L, "secret", author, 1L), false);
+
+        when(userRepository.findById(2L)).thenReturn(Optional.of(reader));
+        when(postRepository.findById(30L)).thenReturn(Optional.of(privatePost));
+
+        assertThatThrownBy(() -> postService.addComment(30L, new AddCommentRequest("blocked"), 2L))
+                .isInstanceOf(AuthorOnlyException.class)
+                .hasMessageContaining("작성자만 접근");
+
+        verify(commentRepository, never()).save(any(Comment.class));
+    }
+
+    @Test
+    void addCommentShouldAllowAuthorOnPrivatePost() {
+        User author = user(1L, "author");
+        Post privatePost = post(31L, author, category(10L, "secret", author, 1L), false);
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(author));
+        when(postRepository.findById(31L)).thenReturn(Optional.of(privatePost));
+
+        CommentResponse response = postService.addComment(31L, new AddCommentRequest("mine"), 1L);
+
+        assertThat(response.postId()).isEqualTo(31L);
+        assertThat(response.authorId()).isEqualTo(1L);
+        assertThat(response.content()).isEqualTo("mine");
+    }
+
+    @Test
+    void addLikeShouldRejectPrivatePostForAnotherUser() {
+        User author = user(1L, "author");
+        User reader = user(2L, "reader");
+        Post privatePost = post(40L, author, category(10L, "secret", author, 1L), false);
+
+        when(postRepository.findById(40L)).thenReturn(Optional.of(privatePost));
+        when(userRepository.findById(2L)).thenReturn(Optional.of(reader));
+
+        assertThatThrownBy(() -> postService.addLike(40L, 2L))
+                .isInstanceOf(AuthorOnlyException.class)
+                .hasMessageContaining("작성자만 접근");
+
+        verify(likeRepository, never()).save(any(Like.class));
+    }
+
+    @Test
+    void addLikeShouldAllowAuthorOnPrivatePost() {
+        User author = user(1L, "author");
+        Post privatePost = post(41L, author, category(10L, "secret", author, 1L), false);
+
+        when(postRepository.findById(41L)).thenReturn(Optional.of(privatePost));
+        when(userRepository.findById(1L)).thenReturn(Optional.of(author));
+        when(likeRepository.countByPost(privatePost)).thenReturn(1L);
+
+        LikeResponse response = postService.addLike(41L, 1L);
+
+        assertThat(response.totalCount()).isEqualTo(1L);
     }
 
     private User user(Long id, String username) {

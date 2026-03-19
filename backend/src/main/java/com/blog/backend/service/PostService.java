@@ -246,7 +246,15 @@ public class PostService {
                 .toList();
     }
 
-    public List<CommentResponse> getPostComments(Long postId) {
+    public List<CommentResponse> getPostComments(Long postId, Long userId) {
+        Post post =
+                postRepository
+                        .findById(postId)
+                        .orElseThrow(() -> new PostNotFoundException(postId));
+
+        if (!post.isPublicStatus() && !post.getUserId().equals(userId)) {
+            throw new AuthorOnlyException(post.getUserId());
+        }
         List<Comment> comments = commentRepository.findAllByPost_Id(postId);
 
         return comments.stream()
@@ -267,7 +275,6 @@ public class PostService {
     public CommentResponse addComment(
             Long postId, AddCommentRequest addCommentRequest, Long userId) {
         String content = addCommentRequest.content();
-
         User user =
                 userRepository
                         .findById(userId)
@@ -277,7 +284,9 @@ public class PostService {
                 postRepository
                         .findById(postId)
                         .orElseThrow(() -> new PostNotFoundException(postId));
-
+        if (!post.isPublicStatus() && !post.getUserId().equals(userId)) {
+            throw new AuthorOnlyException(post.getUserId());
+        }
         Comment comment = Comment.builder().user(user).post(post).content(content).build();
 
         commentRepository.save(comment);
@@ -303,8 +312,8 @@ public class PostService {
                         .findById(userId)
                         .orElseThrow(() -> new UserNotFoundException("User ID", userId.toString()));
 
-        if (likeRepository.existsByPost_IdAndUser_Id(postId, userId)) {
-            throw new AlreadyAddException();
+        if (!post.isPublicStatus() && !post.getUserId().equals(userId)) {
+            throw new AuthorOnlyException(post.getUserId());
         }
 
         try {
