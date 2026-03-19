@@ -2,7 +2,6 @@ package com.blog.backend.controller;
 
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -44,7 +43,7 @@ class LikeControllerIntegrationTest {
     }
 
     @Test
-    void shouldDeleteLikeAndReturnCount() throws Exception {
+    void shouldDeleteLikeAndReturnNoContent() throws Exception {
         User author = saveUser("author");
         User liker = saveUser("liker");
         Post post = savePost(author);
@@ -53,8 +52,7 @@ class LikeControllerIntegrationTest {
         mockMvc.perform(
                         delete("/api/likes/{postId}", post.getId())
                                 .header(AUTHORIZATION, bearer(liker.getId())))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.totalCount").value(0));
+                .andExpect(status().isNoContent());
     }
 
     @Test

@@ -265,7 +265,6 @@ public class PostService {
                                         .profileImageUrl(c.getProfileImage())
                                         .commentId(c.getId())
                                         .author(c.getUsername())
-                                        .postId(c.getPostId())
                                         .content(c.getContent())
                                         .build())
                 .toList();
@@ -295,7 +294,6 @@ public class PostService {
                 .authorId(user.getId())
                 .profileImageUrl(user.getProfileImage())
                 .commentId(comment.getId())
-                .postId(postId)
                 .author(user.getUsername())
                 .content(content)
                 .build();

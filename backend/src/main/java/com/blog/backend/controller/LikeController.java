@@ -7,7 +7,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.blog.backend.dto.LikeResponse;
 import com.blog.backend.service.LikeService;
 
 import lombok.RequiredArgsConstructor;
@@ -19,10 +18,10 @@ public class LikeController {
     private final LikeService likeService;
 
     @DeleteMapping("/{postId}")
-    public ResponseEntity<LikeResponse> deleteLike(
+    public ResponseEntity<Void> deleteLike(
             @PathVariable Long postId, @AuthenticationPrincipal Long userId) {
 
-        LikeResponse likeResponse = likeService.deleteLike(postId, userId);
-        return ResponseEntity.ok(likeResponse);
+        likeService.deleteLike(postId, userId);
+        return ResponseEntity.noContent().build();
     }
 }

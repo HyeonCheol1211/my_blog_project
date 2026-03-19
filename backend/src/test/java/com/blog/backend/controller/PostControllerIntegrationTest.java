@@ -179,7 +179,6 @@ class PostControllerIntegrationTest {
                                 .contentType(APPLICATION_JSON)
                                 .content("{\"content\":\"mine\"}"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.postId").value(post.getId()))
                 .andExpect(jsonPath("$.authorId").value(author.getId()))
                 .andExpect(jsonPath("$.content").value("mine"));
     }

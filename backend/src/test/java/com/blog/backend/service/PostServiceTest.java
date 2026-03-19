@@ -193,7 +193,6 @@ class PostServiceTest {
 
         CommentResponse response = postService.addComment(31L, new AddCommentRequest("mine"), 1L);
 
-        assertThat(response.postId()).isEqualTo(31L);
         assertThat(response.authorId()).isEqualTo(1L);
         assertThat(response.content()).isEqualTo("mine");
     }

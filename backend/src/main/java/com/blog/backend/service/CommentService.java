@@ -46,7 +46,6 @@ public class CommentService {
                 .author(comment.getUsername())
                 .commentId(comment.getId())
                 .content(comment.getContent())
-                .postId(comment.getPostId())
                 .build();
     }
 
