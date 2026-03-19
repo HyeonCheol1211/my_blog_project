@@ -58,6 +58,10 @@ tasks.named('test') {
     useJUnitPlatform()
 }
 
+tasks.named('compileJava') {
+    dependsOn 'spotlessApply'
+}
+
 spotless {
     java {
         googleJavaFormat('1.22.0').aosp()

@@ -1,12 +1,14 @@
 package com.blog.backend.service;
 
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.blog.backend.domain.repository.LikeRepository;
 import com.blog.backend.domain.repository.PostRepository;
 import com.blog.backend.domain.repository.UserRepository;
 import com.blog.backend.exception.AlreadyDeleteException;
+
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
