@@ -1,21 +1,26 @@
 package com.blog.backend.domain;
 
+import java.time.LocalDateTime;
+
 import jakarta.persistence.*;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
-import java.time.LocalDateTime;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Entity
 @NoArgsConstructor
 @Getter
-@Table(name = "follows",
-    uniqueConstraints = @UniqueConstraint(name = "uk_follow_follower_following", columnNames = {"follower_id", "following_id"})
-)
+@Table(
+        name = "follows",
+        uniqueConstraints =
+                @UniqueConstraint(
+                        name = "uk_follow_follower_following",
+                        columnNames = {"follower_id", "following_id"}))
 public class Follow {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

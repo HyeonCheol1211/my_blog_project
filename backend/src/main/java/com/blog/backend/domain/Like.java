@@ -1,24 +1,29 @@
 package com.blog.backend.domain;
 
+import java.time.LocalDateTime;
+
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
-import java.time.LocalDateTime;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 @Getter
-@Table(name = "likes",
-    uniqueConstraints = @UniqueConstraint(name = "uk_like_user_post", columnNames = {"user_id", "post_id"})
-)
+@Table(
+        name = "likes",
+        uniqueConstraints =
+                @UniqueConstraint(
+                        name = "uk_like_user_post",
+                        columnNames = {"user_id", "post_id"}))
 public class Like {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

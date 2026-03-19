@@ -34,13 +34,16 @@ public class FollowService {
                         .orElseThrow(
                                 () -> new UserNotFoundException("User ID", loginUserId.toString()));
 
-        try {
-            Follow follow = Follow.builder().follower(follower).following(following).build();
-            followRepository.save(follow);
-        }catch(DataIntegrityViolationException e){
+        if (followRepository.existsByFollowerAndFollowing(follower, following)) {
             throw new AlreadyAddException();
         }
 
+        try {
+            Follow follow = Follow.builder().follower(follower).following(following).build();
+            followRepository.save(follow);
+        } catch (DataIntegrityViolationException e) {
+            throw new AlreadyAddException();
+        }
 
         return FollowResponse.builder()
                 .followerUsername(follower.getUsername())
