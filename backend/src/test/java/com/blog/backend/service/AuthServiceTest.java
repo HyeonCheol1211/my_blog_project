@@ -112,7 +112,8 @@ class AuthServiceTest {
         when(jwtUtil.createToken(1L)).thenReturn("token");
 
         LoginResponse response =
-                authService.login(UserLoginRequest.builder().username("user").password("pw").build());
+                authService.login(
+                        UserLoginRequest.builder().username("user").password("pw").build());
 
         assertThat(response.userId()).isEqualTo(1L);
         assertThat(response.token()).isEqualTo("token");

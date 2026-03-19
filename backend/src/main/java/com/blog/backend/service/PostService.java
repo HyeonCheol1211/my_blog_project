@@ -1,19 +1,18 @@
 package com.blog.backend.service;
 
-import java.time.LocalDateTime;
-import java.util.List;
-
+import com.blog.backend.domain.*;
+import com.blog.backend.domain.repository.*;
+import com.blog.backend.dto.*;
+import com.blog.backend.exception.*;
+import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.blog.backend.domain.*;
-import com.blog.backend.domain.repository.*;
-import com.blog.backend.dto.*;
-import com.blog.backend.exception.*;
-
-import lombok.RequiredArgsConstructor;
+import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -187,7 +186,7 @@ public class PostService {
         if (post.isPublicStatus()) {
             return true;
         }
-        if (userId == 0L) {
+        if (userId == null || userId == 0L) {
             return false;
         }
 
@@ -302,13 +301,13 @@ public class PostService {
                         .findById(userId)
                         .orElseThrow(() -> new UserNotFoundException("User ID", userId.toString()));
 
-        if (likeRepository.existsByPost_IdAndUser_Id(postId, userId)) {
+        try {
+            Like like = Like.builder().post(post).user(user).build();
+            likeRepository.save(like);
+        }catch(DataIntegrityViolationException e){
             throw new AlreadyAddException();
         }
 
-        Like like = Like.builder().post(post).user(user).build();
-
-        likeRepository.save(like);
         Long likeCount = likeRepository.countByPost(post);
         return LikeResponse.builder().totalCount(likeCount).build();
     }

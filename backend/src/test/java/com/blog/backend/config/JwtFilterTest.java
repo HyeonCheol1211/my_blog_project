@@ -32,8 +32,7 @@ class JwtFilterTest {
     }
 
     @Test
-    void shouldPassThroughWhenAuthorizationHeaderMissing()
-            throws ServletException, IOException {
+    void shouldPassThroughWhenAuthorizationHeaderMissing() throws ServletException, IOException {
         MockHttpServletRequest request = new MockHttpServletRequest("GET", "/api/posts/1");
         MockHttpServletResponse response = new MockHttpServletResponse();
         RecordingFilterChain chain = new RecordingFilterChain();
@@ -45,8 +44,7 @@ class JwtFilterTest {
     }
 
     @Test
-    void shouldReturnUnauthorizedWhenTokenIsInvalid()
-            throws ServletException, IOException {
+    void shouldReturnUnauthorizedWhenTokenIsInvalid() throws ServletException, IOException {
         MockHttpServletRequest request = new MockHttpServletRequest("POST", "/api/posts");
         request.addHeader(HttpHeaders.AUTHORIZATION, "Bearer invalid-token");
         MockHttpServletResponse response = new MockHttpServletResponse();
@@ -81,14 +79,12 @@ class JwtFilterTest {
         SecurityContextHolder.clearContext();
     }
 
-    private static final class RecordingFilterChain
-            implements jakarta.servlet.FilterChain {
+    private static final class RecordingFilterChain implements jakarta.servlet.FilterChain {
         private boolean called;
 
         @Override
         public void doFilter(
-                jakarta.servlet.ServletRequest request,
-                jakarta.servlet.ServletResponse response) {
+                jakarta.servlet.ServletRequest request, jakarta.servlet.ServletResponse response) {
             this.called = true;
         }
 
