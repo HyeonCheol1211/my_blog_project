@@ -1,6 +1,7 @@
 package com.blog.backend.controller;
 
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -15,6 +16,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.blog.backend.domain.Category;
+import com.blog.backend.domain.Comment;
 import com.blog.backend.domain.Like;
 import com.blog.backend.domain.Post;
 import com.blog.backend.domain.User;
@@ -101,6 +103,108 @@ class PostControllerIntegrationTest {
                 .andExpect(status().isUnauthorized());
     }
 
+    @Test
+    void shouldRejectPrivateCommentsWithoutAuthentication() throws Exception {
+        User author = saveUser("secret-author");
+        Category category = saveCategory(author, "secret", 1L);
+        Post post = savePost(author, category, false);
+        saveComment(author, post, "hidden");
+
+        mockMvc.perform(get("/api/posts/{postId}/comments", post.getId()))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.message").value("접근이 제한된 게시글입니다."));
+    }
+
+    @Test
+    void shouldRejectPrivateCommentsForDifferentUser() throws Exception {
+        User author = saveUser("secret-author");
+        User reader = saveUser("reader");
+        Category category = saveCategory(author, "secret", 1L);
+        Post post = savePost(author, category, false);
+        saveComment(author, post, "hidden");
+
+        mockMvc.perform(
+                        get("/api/posts/{postId}/comments", post.getId())
+                                .header(AUTHORIZATION, bearer(reader.getId())))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.message").value("접근이 제한된 게시글입니다."));
+    }
+
+    @Test
+    void shouldReturnPrivateCommentsForAuthor() throws Exception {
+        User author = saveUser("secret-author");
+        Category category = saveCategory(author, "secret", 1L);
+        Post post = savePost(author, category, false);
+        saveComment(author, post, "hidden");
+
+        mockMvc.perform(
+                        get("/api/posts/{postId}/comments", post.getId())
+                                .header(AUTHORIZATION, bearer(author.getId())))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].content").value("hidden"));
+    }
+
+    @Test
+    void shouldRejectAddingCommentToPrivatePostForDifferentUser() throws Exception {
+        User author = saveUser("secret-author");
+        User reader = saveUser("reader");
+        Category category = saveCategory(author, "secret", 1L);
+        Post post = savePost(author, category, false);
+
+        mockMvc.perform(
+                        post("/api/posts/{postId}/comment", post.getId())
+                                .header(AUTHORIZATION, bearer(reader.getId()))
+                                .contentType(APPLICATION_JSON)
+                                .content("{\"content\":\"blocked\"}"))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.message").value("접근이 제한된 게시글입니다."));
+    }
+
+    @Test
+    void shouldAllowAddingCommentToPrivatePostForAuthor() throws Exception {
+        User author = saveUser("secret-author");
+        Category category = saveCategory(author, "secret", 1L);
+        Post post = savePost(author, category, false);
+
+        mockMvc.perform(
+                        post("/api/posts/{postId}/comment", post.getId())
+                                .header(AUTHORIZATION, bearer(author.getId()))
+                                .contentType(APPLICATION_JSON)
+                                .content("{\"content\":\"mine\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.postId").value(post.getId()))
+                .andExpect(jsonPath("$.authorId").value(author.getId()))
+                .andExpect(jsonPath("$.content").value("mine"));
+    }
+
+    @Test
+    void shouldRejectAddingLikeToPrivatePostForDifferentUser() throws Exception {
+        User author = saveUser("secret-author");
+        User reader = saveUser("reader");
+        Category category = saveCategory(author, "secret", 1L);
+        Post post = savePost(author, category, false);
+
+        mockMvc.perform(
+                        post("/api/posts/{postId}/like", post.getId())
+                                .header(AUTHORIZATION, bearer(reader.getId())))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.message").value("접근이 제한된 게시글입니다."));
+    }
+
+    @Test
+    void shouldAllowAddingLikeToPrivatePostForAuthor() throws Exception {
+        User author = saveUser("secret-author");
+        Category category = saveCategory(author, "secret", 1L);
+        Post post = savePost(author, category, false);
+
+        mockMvc.perform(
+                        post("/api/posts/{postId}/like", post.getId())
+                                .header(AUTHORIZATION, bearer(author.getId())))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalCount").value(1));
+    }
+
     private String bearer(Long userId) {
         return "Bearer " + jwtUtil.createToken(userId);
     }
@@ -129,5 +233,10 @@ class PostControllerIntegrationTest {
                         .content("content")
                         .publicStatus(publicStatus)
                         .build());
+    }
+
+    private Comment saveComment(User user, Post post, String content) {
+        return commentRepository.saveAndFlush(
+                Comment.builder().user(user).post(post).content(content).build());
     }
 }

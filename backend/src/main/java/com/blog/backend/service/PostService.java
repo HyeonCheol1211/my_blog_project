@@ -6,6 +6,7 @@ import java.util.List;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -246,7 +247,15 @@ public class PostService {
                 .toList();
     }
 
-    public List<CommentResponse> getPostComments(Long postId) {
+    public List<CommentResponse> getPostComments(Long postId, Long userId) {
+        Post post =
+                postRepository
+                        .findById(postId)
+                        .orElseThrow(() -> new PostNotFoundException(postId));
+
+        if (!post.isPublicStatus() && !post.getUserId().equals(userId)) {
+            throw new AccessDeniedException("접근이 제한된 게시글입니다.");
+        }
         List<Comment> comments = commentRepository.findAllByPost_Id(postId);
 
         return comments.stream()
@@ -267,7 +276,6 @@ public class PostService {
     public CommentResponse addComment(
             Long postId, AddCommentRequest addCommentRequest, Long userId) {
         String content = addCommentRequest.content();
-
         User user =
                 userRepository
                         .findById(userId)
@@ -277,7 +285,9 @@ public class PostService {
                 postRepository
                         .findById(postId)
                         .orElseThrow(() -> new PostNotFoundException(postId));
-
+        if (!post.isPublicStatus() && !post.getUserId().equals(userId)) {
+            throw new AccessDeniedException("접근이 제한된 게시글입니다.");
+        }
         Comment comment = Comment.builder().user(user).post(post).content(content).build();
 
         commentRepository.save(comment);
@@ -303,8 +313,8 @@ public class PostService {
                         .findById(userId)
                         .orElseThrow(() -> new UserNotFoundException("User ID", userId.toString()));
 
-        if (likeRepository.existsByPost_IdAndUser_Id(postId, userId)) {
-            throw new AlreadyAddException();
+        if (!post.isPublicStatus() && !post.getUserId().equals(userId)) {
+            throw new AccessDeniedException("접근이 제한된 게시글입니다.");
         }
 
         try {
