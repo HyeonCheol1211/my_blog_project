@@ -12,10 +12,7 @@ server:
 
 app:
   cors:
-    allowed-origins:
-      - https://blog-front-temp.vercel.app
-      - https://hc-domain.site
-      - http://localhost:5173
+    allowed-origins: https://blog-front-temp.vercel.app,https://hc-domain.site,http://localhost:5173
 
 jwt:
   secret: ${JWT_SECRET_KEY}

@@ -24,7 +24,7 @@ public class SecurityConfig {
 
     private final JwtFilter jwtFilter;
 
-    @Value("${app.cors.allowed-origins}")
+    @Value("${app.cors.allowed-origins:https://blog-front-temp.vercel.app}")
     private List<String> allowedOrigins;
 
     @Bean
