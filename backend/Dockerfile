@@ -9,7 +9,7 @@ WORKDIR /app
 COPY . .
 # 도커 내에서 실행 권한 부여 후 빌드
 RUN chmod +x gradlew
-RUN ./gradlew clean build -x test
+RUN ./gradlew clean build
 
 # 2단계: 실행 전용 환경 (최종 실행 파일만 추출)
 FROM eclipse-temurin:21-jre-jammy

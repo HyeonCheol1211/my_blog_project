@@ -54,3 +54,4 @@ test_uploads/
 
 /gradle/gradle-daemon-jvm.properties
 /src/test/resources/application-test.yml
+/.env
