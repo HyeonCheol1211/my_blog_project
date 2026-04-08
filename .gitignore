@@ -51,3 +51,6 @@ db_data/
 img_data/
 test_uploads/
 .gitmessage.txt
+
+/gradle/gradle-daemon-jvm.properties
+/src/test/resources/application-test.yml
