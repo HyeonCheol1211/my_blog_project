@@ -32,7 +32,7 @@ public class Post {
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "category_id")
+    @JoinColumn(name = "category_id", nullable = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Category category;
 
@@ -70,6 +70,6 @@ public class Post {
     }
 
     public String getProfileImage() {
-        return user.getProfileImage();
+        return user.getProfileImageUrl();
     }
 }

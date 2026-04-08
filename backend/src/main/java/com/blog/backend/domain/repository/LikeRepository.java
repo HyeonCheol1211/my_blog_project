@@ -1,27 +1,33 @@
 package com.blog.backend.domain.repository;
 
-import java.util.List;
-
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
-
 import com.blog.backend.domain.Like;
 import com.blog.backend.domain.Post;
-import com.blog.backend.domain.User;
+import com.blog.backend.dto.LikeUserResponse;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
 
 @Repository
 public interface LikeRepository extends JpaRepository<Like, Long> {
     Long countByPost(Post post);
 
-    boolean existsByUserAndPost(User user, Post post);
-
-    List<Like> findAllByPost(Post post);
+    @Query(
+            """
+            SELECT new com.blog.backend.dto.LikeUserResponse(
+                u.id,
+                u.username,
+                u.profileImageUrl
+            )
+            FROM Like l
+            JOIN l.user u
+            WHERE l.post.id = :postId
+            """)
+    List<LikeUserResponse> findLikeUserResponsesByPostId(@Param("postId") Long postId);
 
     boolean existsByUser_IdAndPost_Id(Long userId, Long postId);
 
     void removeByUser_IdAndPost_Id(Long userId, Long postId);
-
-    boolean existsByPost_IdAndUser_Id(Long postId, Long userId);
-
-    Long countByPost_Id(Long postId);
 }

@@ -11,7 +11,7 @@ public record PostResponse(
         String content,
         Long authorId,
         String author,
-        boolean publicStatus,
+        Boolean publicStatus,
         LocalDateTime createdAt,
         Long likeCount,
         String profileImageUrl) {}

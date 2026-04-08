@@ -92,7 +92,7 @@ class AuthControllerIntegrationTest {
                         .username(username)
                         .email(email)
                         .password(password)
-                        .profileImage("/images/profiles/basic_profile_image.png")
+                        .profileImageUrl("/images/profiles/basic_profile_image.png")
                         .build());
     }
 }

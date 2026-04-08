@@ -3,10 +3,9 @@ package com.blog.backend.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
@@ -15,23 +14,13 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
-import com.blog.backend.domain.Category;
-import com.blog.backend.domain.Comment;
-import com.blog.backend.domain.Like;
-import com.blog.backend.domain.Post;
-import com.blog.backend.domain.User;
-import com.blog.backend.domain.repository.CategoryRepository;
-import com.blog.backend.domain.repository.CommentRepository;
-import com.blog.backend.domain.repository.LikeRepository;
-import com.blog.backend.domain.repository.PostRepository;
-import com.blog.backend.domain.repository.UserRepository;
-import com.blog.backend.dto.AddCommentRequest;
-import com.blog.backend.dto.CommentResponse;
-import com.blog.backend.dto.LikeResponse;
-import com.blog.backend.dto.PostDetailResponse;
-import com.blog.backend.dto.PostResponse;
-import com.blog.backend.dto.UpdatePostRequest;
+import com.blog.backend.domain.*;
+import com.blog.backend.domain.constant.PostSortType;
+import com.blog.backend.domain.repository.*;
+import com.blog.backend.dto.*;
 import com.blog.backend.exception.AlreadyAddException;
 import com.blog.backend.exception.AuthorOnlyException;
 
@@ -111,17 +100,78 @@ class PostServiceTest {
         User author = user(1L, "author");
         Category category = category(10L, "public", author, 1L);
         Post publicPost = post(300L, author, category, true);
+        PostDetailResponse detailResponse =
+                PostDetailResponse.builder()
+                        .id(300L)
+                        .title("title")
+                        .content("content")
+                        .authorId(1L)
+                        .author("author")
+                        .categoryName("public")
+                        .publicStatus(true)
+                        .likeCount(5L)
+                        .liked(true)
+                        .profileImageUrl("/images/profiles/basic_profile_image.png")
+                        .build();
 
         when(postRepository.findById(300L)).thenReturn(Optional.of(publicPost));
-        when(userRepository.findById(1L)).thenReturn(Optional.of(author));
-        when(likeRepository.countByPost(publicPost)).thenReturn(5L);
-        when(likeRepository.existsByUserAndPost(author, publicPost)).thenReturn(true);
+        when(postRepository.findPostDetailResponse(300L, 1L)).thenReturn(detailResponse);
 
         PostDetailResponse response = postService.getPost(300L, 1L);
 
         assertThat(response.liked()).isTrue();
         assertThat(response.likeCount()).isEqualTo(5L);
         assertThat(response.authorId()).isEqualTo(1L);
+    }
+
+    @Test
+    void getPostsShouldUseLatestProjectionWhenSortTypeIsLatest() {
+        Pageable pageable = PageRequest.of(0, 10);
+        List<PostResponse> expected =
+                List.of(
+                        PostResponse.builder()
+                                .id(1L)
+                                .title("latest")
+                                .content("content")
+                                .authorId(1L)
+                                .author("author")
+                                .publicStatus(true)
+                                .likeCount(0L)
+                                .profileImageUrl("/images/profiles/basic_profile_image.png")
+                                .build());
+
+        when(postRepository.findPostResponsesByLatest(pageable)).thenReturn(expected);
+
+        List<PostResponse> result = postService.getPosts(PostSortType.LATEST, pageable);
+
+        assertThat(result).isEqualTo(expected);
+        verify(postRepository).findPostResponsesByLatest(pageable);
+        verify(postRepository, never()).findPostResponsesByDateLike(any(), any());
+    }
+
+    @Test
+    void getPostsShouldUsePopularProjectionForWeeklyLikeSort() {
+        Pageable pageable = PageRequest.of(0, 10);
+        List<PostResponse> expected =
+                List.of(
+                        PostResponse.builder()
+                                .id(2L)
+                                .title("popular")
+                                .content("content")
+                                .authorId(1L)
+                                .author("author")
+                                .publicStatus(true)
+                                .likeCount(3L)
+                                .profileImageUrl("/images/profiles/basic_profile_image.png")
+                                .build());
+
+        when(postRepository.findPostResponsesByDateLike(any(), eq(pageable))).thenReturn(expected);
+
+        List<PostResponse> result = postService.getPosts(PostSortType.WEEKLY_LIKE, pageable);
+
+        assertThat(result).isEqualTo(expected);
+        verify(postRepository).findPostResponsesByDateLike(any(), eq(pageable));
+        verify(postRepository, never()).findPostResponsesByLatest(any());
     }
 
     @Test
@@ -139,6 +189,39 @@ class PostServiceTest {
     }
 
     @Test
+    void getLikeUserListShouldReturnProjectionForAuthor() {
+        User author = user(1L, "author");
+        Post post = post(10L, author, category(1L, "likes", author, 1L), true);
+        List<LikeUserResponse> expected =
+                List.of(
+                        LikeUserResponse.builder()
+                                .userId(2L)
+                                .username("reader")
+                                .profileImageUrl("/images/profiles/basic_profile_image.png")
+                                .build());
+
+        when(postRepository.findById(10L)).thenReturn(Optional.of(post));
+        when(likeRepository.findLikeUserResponsesByPostId(10L)).thenReturn(expected);
+
+        List<LikeUserResponse> responses = postService.getLikeUserList(10L, 1L);
+
+        assertThat(responses).isEqualTo(expected);
+    }
+
+    @Test
+    void getLikeUserListShouldRejectDifferentUser() {
+        User author = user(1L, "author");
+        Post post = post(11L, author, category(1L, "likes", author, 1L), true);
+
+        when(postRepository.findById(11L)).thenReturn(Optional.of(post));
+
+        assertThatThrownBy(() -> postService.getLikeUserList(11L, 2L))
+                .isInstanceOf(com.blog.backend.exception.LoginUserNotMatchException.class);
+
+        verify(likeRepository, never()).findLikeUserResponsesByPostId(11L);
+    }
+
+    @Test
     void getPostCommentsShouldRejectPrivatePostForAnotherUser() {
         User author = user(1L, "author");
         Post privatePost = post(20L, author, category(10L, "secret", author, 1L), false);
@@ -149,17 +232,25 @@ class PostServiceTest {
                 .isInstanceOf(AuthorOnlyException.class)
                 .hasMessageContaining("작성자만 접근");
 
-        verify(commentRepository, never()).findAllByPost_Id(20L);
+        verify(commentRepository, never()).findCommentResponsesByPostId(20L);
     }
 
     @Test
     void getPostCommentsShouldAllowAuthorToViewPrivatePostComments() {
         User author = user(1L, "author");
         Post privatePost = post(21L, author, category(10L, "secret", author, 1L), false);
-        Comment comment = Comment.builder().user(author).post(privatePost).content("hello").build();
+        CommentResponse comment =
+                CommentResponse.builder()
+                        .commentId(1L)
+                        .profileImageUrl("/images/profiles/basic_profile_image.png")
+                        .author("author")
+                        .authorId(1L)
+                        .content("hello")
+                        .build();
 
         when(postRepository.findById(21L)).thenReturn(Optional.of(privatePost));
-        when(commentRepository.findAllByPost_Id(21L)).thenReturn(java.util.List.of(comment));
+        when(commentRepository.findCommentResponsesByPostId(21L))
+                .thenReturn(java.util.List.of(comment));
 
         java.util.List<CommentResponse> responses = postService.getPostComments(21L, 1L);
 
@@ -233,7 +324,7 @@ class PostServiceTest {
                 .username(username)
                 .email(username + "@test.com")
                 .password("pw")
-                .profileImage("/images/profiles/basic_profile_image.png")
+                .profileImageUrl("/images/profiles/basic_profile_image.png")
                 .build();
     }
 

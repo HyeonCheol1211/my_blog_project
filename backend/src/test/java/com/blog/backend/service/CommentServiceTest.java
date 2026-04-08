@@ -75,8 +75,17 @@ class CommentServiceTest {
 
     @Test
     void getMyCommentsShouldMapPostTitle() {
-        when(commentRepository.findAllByUser_Id(1L))
-                .thenReturn(List.of(comment(1L, 1L, 10L, "hello")));
+        when(commentRepository.findMyCommentDetailResponse(1L))
+                .thenReturn(
+                        List.of(
+                                CommentDetailResponse.builder()
+                                        .commentId(1L)
+                                        .author("author")
+                                        .profileImageUrl("/images/profiles/basic_profile_image.png")
+                                        .postId(10L)
+                                        .postTitle("post-title")
+                                        .content("hello")
+                                        .build()));
 
         List<CommentDetailResponse> responses = commentService.getMyComments(1L);
 
@@ -125,7 +134,7 @@ class CommentServiceTest {
                 .username(username)
                 .email(username + "@test.com")
                 .password("pw")
-                .profileImage("/images/profiles/basic_profile_image.png")
+                .profileImageUrl("/images/profiles/basic_profile_image.png")
                 .build();
     }
 

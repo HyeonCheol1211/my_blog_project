@@ -82,7 +82,7 @@ class FollowControllerIntegrationTest {
                         .username(username)
                         .email(username + "@test.com")
                         .password("pw")
-                        .profileImage("/images/profiles/basic_profile_image.png")
+                        .profileImageUrl("/images/profiles/basic_profile_image.png")
                         .build());
     }
 }

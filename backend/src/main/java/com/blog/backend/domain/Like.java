@@ -46,7 +46,7 @@ public class Like {
     }
 
     public String getProfileImage() {
-        return user.getProfileImage();
+        return user.getProfileImageUrl();
     }
 
     public String getUsername() {
