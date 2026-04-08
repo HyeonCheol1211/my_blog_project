@@ -1,15 +1,16 @@
 package com.blog.backend.domain.repository;
 
-import com.blog.backend.domain.Follow;
-import com.blog.backend.domain.User;
-import com.blog.backend.dto.FollowerResponse;
-import com.blog.backend.dto.FollowingResponse;
+import java.util.List;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
+import com.blog.backend.domain.Follow;
+import com.blog.backend.domain.User;
+import com.blog.backend.dto.FollowerResponse;
+import com.blog.backend.dto.FollowingResponse;
 
 @Repository
 public interface FollowRepository extends JpaRepository<Follow, Long> {
