@@ -2,6 +2,8 @@ package com.blog.backend.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.lang.reflect.Field;
@@ -96,6 +98,32 @@ class UserServiceTest {
                                         null,
                                         1L))
                 .isInstanceOf(DuplicateEmailException.class);
+    }
+
+    @Test
+    void updateProfileShouldAllowSameEmail() {
+        User user = user(1L, "author");
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+
+        userService.updateProfile(
+                UserUpdateRequest.builder().email("author@test.com").bio("updated bio").build(),
+                null,
+                1L);
+
+        assertThat(user.getEmail()).isEqualTo("author@test.com");
+        assertThat(user.getBio()).isEqualTo("updated bio");
+        verify(userRepository, never()).existsByEmail("author@test.com");
+    }
+
+    @Test
+    void updateProfileShouldKeepExistingEmailWhenEmailIsNull() {
+        User user = user(1L, "author");
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+
+        userService.updateProfile(UserUpdateRequest.builder().bio("updated bio").build(), null, 1L);
+
+        assertThat(user.getEmail()).isEqualTo("author@test.com");
+        assertThat(user.getBio()).isEqualTo("updated bio");
     }
 
     @Test

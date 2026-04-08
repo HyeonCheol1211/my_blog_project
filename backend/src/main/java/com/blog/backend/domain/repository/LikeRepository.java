@@ -1,14 +1,15 @@
 package com.blog.backend.domain.repository;
 
-import com.blog.backend.domain.Like;
-import com.blog.backend.domain.Post;
-import com.blog.backend.dto.LikeUserResponse;
+import java.util.List;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
+import com.blog.backend.domain.Like;
+import com.blog.backend.domain.Post;
+import com.blog.backend.dto.LikeUserResponse;
 
 @Repository
 public interface LikeRepository extends JpaRepository<Like, Long> {

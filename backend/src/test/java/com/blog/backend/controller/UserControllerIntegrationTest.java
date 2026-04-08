@@ -109,6 +109,24 @@ class UserControllerIntegrationTest {
                 .andExpect(jsonPath("$.email").value("new@test.com"));
     }
 
+    @Test
+    void shouldAllowUpdatingProfileWithSameEmail() throws Exception {
+        User user = saveUser("author", "author@test.com");
+        MockMultipartFile request =
+                new MockMultipartFile(
+                        "userUpdateRequest",
+                        "",
+                        APPLICATION_JSON_VALUE,
+                        "{\"email\":\"author@test.com\",\"bio\":\"same email bio\"}".getBytes());
+
+        mockMvc.perform(
+                        multipart(HttpMethod.PUT, "/api/users/profile")
+                                .file(request)
+                                .header(AUTHORIZATION, bearer(user.getId())))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.email").value("author@test.com"));
+    }
+
     private static final String APPLICATION_JSON_VALUE = MediaType.APPLICATION_JSON_VALUE;
 
     private String bearer(Long userId) {
