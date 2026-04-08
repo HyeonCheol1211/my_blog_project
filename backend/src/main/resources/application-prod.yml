@@ -7,6 +7,16 @@ spring:
     hibernate:
       ddl-auto: validate
 
+server:
+  forward-headers-strategy: framework
+
+app:
+  cors:
+    allowed-origins:
+      - https://blog-front-temp.vercel.app
+      - https://hc-domain.site
+      - http://localhost:5173
+
 jwt:
   secret: ${JWT_SECRET_KEY}
 
