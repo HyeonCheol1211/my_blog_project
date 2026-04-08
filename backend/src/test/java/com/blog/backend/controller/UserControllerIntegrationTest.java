@@ -122,7 +122,7 @@ class UserControllerIntegrationTest {
                         .email(email)
                         .password("pw")
                         .bio("bio")
-                        .profileImage("/images/profiles/basic_profile_image.png")
+                        .profileImageUrl("/images/profiles/basic_profile_image.png")
                         .build());
     }
 

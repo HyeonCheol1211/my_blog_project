@@ -8,7 +8,6 @@ import org.springframework.transaction.annotation.Transactional;
 import com.blog.backend.domain.Comment;
 import com.blog.backend.domain.User;
 import com.blog.backend.domain.repository.CommentRepository;
-import com.blog.backend.domain.repository.PostRepository;
 import com.blog.backend.domain.repository.UserRepository;
 import com.blog.backend.dto.CommentDetailResponse;
 import com.blog.backend.dto.CommentResponse;
@@ -24,7 +23,6 @@ import lombok.RequiredArgsConstructor;
 @Transactional(readOnly = true)
 public class CommentService {
     private final UserRepository userRepository;
-    private final PostRepository postRepository;
     private final CommentRepository commentRepository;
 
     @Transactional
@@ -36,7 +34,7 @@ public class CommentService {
                         .orElseThrow(() -> new CommentNotFoundException(commentId));
 
         if (!comment.getUserId().equals(userId)) {
-            throw new AuthorOnlyException(comment.getUserId());
+            throw new AuthorOnlyException();
         }
 
         comment.updateComment(updateCommentRequest.content());
@@ -61,25 +59,13 @@ public class CommentService {
                         .orElseThrow(() -> new UserNotFoundException("User ID", userId.toString()));
 
         if (!comment.getUserId().equals(user.getId())) {
-            throw new AuthorOnlyException(comment.getUserId());
+            throw new AuthorOnlyException();
         }
 
         commentRepository.deleteById(commentId);
     }
 
     public List<CommentDetailResponse> getMyComments(Long userId) {
-        List<Comment> comments = commentRepository.findAllByUser_Id(userId);
-        return comments.stream()
-                .map(
-                        c ->
-                                CommentDetailResponse.builder()
-                                        .profileImageUrl(c.getProfileImage())
-                                        .commentId(c.getId())
-                                        .author(c.getUsername())
-                                        .postId(c.getPostId())
-                                        .postTitle(c.getPostTitle())
-                                        .content(c.getContent())
-                                        .build())
-                .toList();
+        return commentRepository.findMyCommentDetailResponse(userId);
     }
 }

@@ -32,7 +32,7 @@ public class User {
     @Column(nullable = false)
     private String password;
 
-    @Builder.Default private String profileImage = "/images/profiles/basic_profile_image.png";
+    @Builder.Default private String profileImageUrl = "/images/profiles/basic_profile_image.png";
 
     private String bio;
 
@@ -51,10 +51,10 @@ public class User {
     }
 
     public void updateProfileImage(String profileImage) {
-        this.profileImage = profileImage;
+        this.profileImageUrl = profileImage;
     }
 
     public boolean canDeleteImage() {
-        return !profileImage.equals("/images/profiles/basic_profile_image.png");
+        return !profileImageUrl.equals("/images/profiles/basic_profile_image.png");
     }
 }

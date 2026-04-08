@@ -15,7 +15,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.blog.backend.domain.Post;
 import com.blog.backend.domain.User;
 import com.blog.backend.domain.repository.*;
 import com.blog.backend.dto.*;
@@ -54,7 +53,7 @@ public class UserService {
                 .username(user.getUsername())
                 .email(user.getEmail())
                 .bio(user.getBio())
-                .profileImageUrl(user.getProfileImage())
+                .profileImageUrl(user.getProfileImageUrl())
                 .createdAt(user.getCreatedAt())
                 .followerCount(followerCount)
                 .followingCount(followingCount)
@@ -132,7 +131,7 @@ public class UserService {
 
         if (multipartFile != null && !multipartFile.isEmpty()) {
             if (user.canDeleteImage()) {
-                deleteOldProfileImage(user.getProfileImage());
+                deleteOldProfileImage(user.getProfileImageUrl());
             }
             profileImage = imageValidate(multipartFile);
         }
@@ -155,84 +154,18 @@ public class UserService {
     }
 
     public List<FollowerResponse> getFollowers(Long userId) {
-        return followRepository.findAllByFollowing_Id(userId).stream()
-                .map(
-                        follow ->
-                                FollowerResponse.builder()
-                                        .followerId(follow.getFollowerId())
-                                        .profileImageUrl(follow.getFollowerProfileImage())
-                                        .username(follow.getFollowerUsername())
-                                        .build())
-                .toList();
+        return followRepository.findFollowerResponsesByFollowingId(userId);
     }
 
     public List<FollowingResponse> getFollowings(Long userId) {
-        return followRepository.findAllByFollower_Id(userId).stream()
-                .map(
-                        follow ->
-                                FollowingResponse.builder()
-                                        .followingId(follow.getFollowingId())
-                                        .profileImageUrl(follow.getFollowingProfileImage())
-                                        .username(follow.getFollowingUsername())
-                                        .build())
-                .toList();
+        return followRepository.findFollowingResponsesByFollowerId(userId);
     }
 
     public List<PostResponse> getUserPosts(Long userId, Long loginUserId) {
-        List<Post> posts = List.of();
-        if (loginUserId != null && userId.equals(loginUserId)) {
-            posts = postRepository.findAllByUser_Id(userId);
-        }
-
-        if (loginUserId == null || !userId.equals(loginUserId)) {
-            posts = postRepository.findAllByUser_IdAndPublicStatus(userId, true);
-        }
-
-        return posts.stream()
-                .map(
-                        p ->
-                                PostResponse.builder()
-                                        .profileImageUrl(p.getProfileImage())
-                                        .id(p.getId())
-                                        .title(p.getTitle())
-                                        .content(p.getContent())
-                                        .authorId(p.getUserId())
-                                        .author(p.getUsername())
-                                        .publicStatus(p.isPublicStatus())
-                                        .createdAt(p.getCreatedAt())
-                                        .likeCount(likeRepository.countByPost(p))
-                                        .build())
-                .toList();
+        return postRepository.findUserPosts(userId, loginUserId);
     }
 
     public List<CategoryResponse> getCategoryList(Long userId, Long loginUserId) {
-        if (userId.equals(loginUserId)) {
-            return categoryRepository.findAllByUser_Id(userId).stream()
-                    .map(
-                            category ->
-                                    CategoryResponse.builder()
-                                            .postsCount(postRepository.countByCategory(category))
-                                            .id(category.getId())
-                                            .categoryName(category.getName())
-                                            .build())
-                    .toList();
-        }
-
-        return categoryRepository.findAllByUser_Id(userId).stream()
-                .map(
-                        category -> {
-                            Long postsCount =
-                                    postRepository.countByCategoryAndPublicStatus(category, true);
-                            if (postsCount > 0) {
-                                return CategoryResponse.builder()
-                                        .postsCount(postsCount)
-                                        .id(category.getId())
-                                        .categoryName(category.getName())
-                                        .build();
-                            }
-                            return null;
-                        })
-                .filter(java.util.Objects::nonNull)
-                .toList();
+        return categoryRepository.findCategoryResponses(userId, loginUserId);
     }
 }

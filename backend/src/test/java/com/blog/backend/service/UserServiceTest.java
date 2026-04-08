@@ -19,14 +19,14 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import com.blog.backend.domain.Category;
-import com.blog.backend.domain.Post;
 import com.blog.backend.domain.User;
 import com.blog.backend.domain.repository.CategoryRepository;
 import com.blog.backend.domain.repository.FollowRepository;
-import com.blog.backend.domain.repository.LikeRepository;
 import com.blog.backend.domain.repository.PostRepository;
 import com.blog.backend.domain.repository.UserRepository;
 import com.blog.backend.dto.CategoryResponse;
+import com.blog.backend.dto.FollowerResponse;
+import com.blog.backend.dto.FollowingResponse;
 import com.blog.backend.dto.PostResponse;
 import com.blog.backend.dto.ProfileBasicResponse;
 import com.blog.backend.dto.ProfileExtraResponse;
@@ -41,7 +41,6 @@ class UserServiceTest {
     @Mock private UserRepository userRepository;
     @Mock private FollowRepository followRepository;
     @Mock private PostRepository postRepository;
-    @Mock private LikeRepository likeRepository;
     @Mock private CategoryRepository categoryRepository;
     @Mock private BCryptPasswordEncoder passwordEncoder;
 
@@ -101,33 +100,83 @@ class UserServiceTest {
 
     @Test
     void getUserPostsShouldReturnAllPostsForOwner() {
-        User user = user(1L, "author");
-        Category category = category(1L, "daily", user, 2L);
-        Post publicPost = post(1L, user, category, true);
-        Post privatePost = post(2L, user, category, false);
-        when(postRepository.findAllByUser_Id(1L)).thenReturn(List.of(publicPost, privatePost));
-        when(likeRepository.countByPost(publicPost)).thenReturn(3L);
-        when(likeRepository.countByPost(privatePost)).thenReturn(0L);
+        List<PostResponse> expected =
+                List.of(
+                        PostResponse.builder()
+                                .id(1L)
+                                .title("title-1")
+                                .content("content-1")
+                                .authorId(1L)
+                                .author("author")
+                                .publicStatus(true)
+                                .likeCount(3L)
+                                .profileImageUrl("/images/profiles/basic_profile_image.png")
+                                .build(),
+                        PostResponse.builder()
+                                .id(2L)
+                                .title("title-2")
+                                .content("content-2")
+                                .authorId(1L)
+                                .author("author")
+                                .publicStatus(false)
+                                .likeCount(0L)
+                                .profileImageUrl("/images/profiles/basic_profile_image.png")
+                                .build());
+        when(postRepository.findUserPosts(1L, 1L)).thenReturn(expected);
 
         List<PostResponse> responses = userService.getUserPosts(1L, 1L);
 
         assertThat(responses).hasSize(2);
-        assertThat(responses).extracting(PostResponse::id).containsExactly(1L, 2L);
+        assertThat(responses).isEqualTo(expected);
     }
 
     @Test
     void getCategoryListShouldHidePrivateOnlyCategoryFromVisitor() {
-        User user = user(1L, "author");
-        Category visible = category(1L, "public", user, 2L);
-        Category hidden = category(2L, "private", user, 1L);
-        when(categoryRepository.findAllByUser_Id(1L)).thenReturn(List.of(visible, hidden));
-        when(postRepository.countByCategoryAndPublicStatus(visible, true)).thenReturn(2L);
-        when(postRepository.countByCategoryAndPublicStatus(hidden, true)).thenReturn(0L);
+        List<CategoryResponse> expected =
+                List.of(
+                        CategoryResponse.builder()
+                                .id(1L)
+                                .categoryName("public")
+                                .postsCount(2L)
+                                .build());
+        when(categoryRepository.findCategoryResponses(1L, 99L)).thenReturn(expected);
 
         List<CategoryResponse> responses = userService.getCategoryList(1L, 99L);
 
         assertThat(responses).hasSize(1);
-        assertThat(responses.get(0).categoryName()).isEqualTo("public");
+        assertThat(responses).isEqualTo(expected);
+    }
+
+    @Test
+    void getFollowersShouldReturnProjectionResponses() {
+        List<FollowerResponse> expected =
+                List.of(
+                        FollowerResponse.builder()
+                                .followerId(2L)
+                                .username("reader")
+                                .profileImageUrl("/images/profiles/basic_profile_image.png")
+                                .build());
+        when(followRepository.findFollowerResponsesByFollowingId(1L)).thenReturn(expected);
+
+        List<FollowerResponse> responses = userService.getFollowers(1L);
+
+        assertThat(responses).isEqualTo(expected);
+    }
+
+    @Test
+    void getFollowingsShouldReturnProjectionResponses() {
+        List<FollowingResponse> expected =
+                List.of(
+                        FollowingResponse.builder()
+                                .followingId(3L)
+                                .username("writer")
+                                .profileImageUrl("/images/profiles/basic_profile_image.png")
+                                .build());
+        when(followRepository.findFollowingResponsesByFollowerId(1L)).thenReturn(expected);
+
+        List<FollowingResponse> responses = userService.getFollowings(1L);
+
+        assertThat(responses).isEqualTo(expected);
     }
 
     @Test
@@ -145,23 +194,12 @@ class UserServiceTest {
                 .email(username + "@test.com")
                 .password("pw")
                 .bio("bio")
-                .profileImage("/images/profiles/basic_profile_image.png")
+                .profileImageUrl("/images/profiles/basic_profile_image.png")
                 .createdAt(LocalDateTime.now())
                 .build();
     }
 
     private Category category(Long id, String name, User user, Long count) {
         return Category.builder().id(id).name(name).user(user).count(count).build();
-    }
-
-    private Post post(Long id, User user, Category category, boolean publicStatus) {
-        return Post.builder()
-                .id(id)
-                .user(user)
-                .category(category)
-                .title("title-" + id)
-                .content("content-" + id)
-                .publicStatus(publicStatus)
-                .build();
     }
 }

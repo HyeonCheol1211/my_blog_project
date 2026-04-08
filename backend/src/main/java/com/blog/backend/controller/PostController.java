@@ -1,15 +1,15 @@
 package com.blog.backend.controller;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import com.blog.backend.domain.constant.PostSortType;
 import com.blog.backend.dto.*;
 import com.blog.backend.service.PostService;
 
@@ -56,11 +56,10 @@ public class PostController {
 
     @GetMapping("/list")
     public ResponseEntity<List<PostResponse>> getPosts(
-            @RequestParam(required = false, defaultValue = "latest") String sort,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
-                    LocalDateTime startDate,
-            @PageableDefault(size = 10) Pageable pageable) {
-        List<PostResponse> postsResponse = postService.getPosts(sort, startDate, pageable);
+            @RequestParam(required = false, defaultValue = "LATEST") PostSortType postSortType,
+            @PageableDefault(sort = "createdAt", direction = Sort.Direction.DESC)
+                    Pageable pageable) {
+        List<PostResponse> postsResponse = postService.getPosts(postSortType, pageable);
         return ResponseEntity.ok(postsResponse);
     }
 

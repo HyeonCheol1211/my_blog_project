@@ -5,6 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import com.blog.backend.exception.dto.ErrorResponse;
 
@@ -42,6 +43,12 @@ public class GlobalExceptionHandler {
     })
     public ResponseEntity<ErrorResponse> handleConflictExceptions(Exception e) {
         return buildErrorResponse(HttpStatus.CONFLICT, e);
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ErrorResponse> handleBadRequestExceptions(
+            MethodArgumentTypeMismatchException e) {
+        return buildErrorResponse(HttpStatus.BAD_REQUEST, e);
     }
 
     private ResponseEntity<ErrorResponse> buildErrorResponse(HttpStatus status, Exception e) {

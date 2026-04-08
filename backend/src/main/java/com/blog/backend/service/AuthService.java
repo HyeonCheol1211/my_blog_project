@@ -53,7 +53,7 @@ public class AuthService {
                         .email(userSignupRequest.email())
                         .password(encodedPassword)
                         .username(userSignupRequest.username())
-                        .profileImage(
+                        .profileImageUrl(
                                 (profileImage == null)
                                         ? "/images/profiles/basic_profile_image.png"
                                         : profileImage)

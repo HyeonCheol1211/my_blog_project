@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.blog.backend.domain.*;
+import com.blog.backend.domain.constant.PostSortType;
 import com.blog.backend.domain.repository.*;
 import com.blog.backend.dto.*;
 import com.blog.backend.exception.*;
@@ -77,7 +78,7 @@ public class PostService {
                         .orElseThrow(() -> new UserNotFoundException("User ID", userId.toString()));
 
         if (!user.getId().equals(post.getUserId())) {
-            throw new AuthorOnlyException(post.getUserId());
+            throw new AuthorOnlyException();
         }
 
         postRepository.delete(post);
@@ -106,7 +107,7 @@ public class PostService {
                         .orElseThrow(() -> new PostNotFoundException(postId));
 
         if (!userId.equals(post.getUserId())) {
-            throw new AuthorOnlyException(post.getUserId());
+            throw new AuthorOnlyException();
         }
 
         String title = updatePostRequest.title();
@@ -149,80 +150,31 @@ public class PostService {
                 postRepository
                         .findById(postId)
                         .orElseThrow(() -> new PostNotFoundException(postId));
-        User author = post.getUser();
-
-        if (canGetPost(post, userId)) {
-            Long likeCount = likeRepository.countByPost(post);
-            boolean liked = false;
-            if (userId != null) {
-                User user =
-                        userRepository
-                                .findById(userId)
-                                .orElseThrow(
-                                        () ->
-                                                new UserNotFoundException(
-                                                        "User ID", userId.toString()));
-                liked = likeRepository.existsByUserAndPost(user, post);
-            }
-
-            return PostDetailResponse.builder()
-                    .id(post.getId())
-                    .title(post.getTitle())
-                    .content(post.getContent())
-                    .authorId(post.getUserId())
-                    .author(post.getUsername())
-                    .categoryName(post.getCategoryName())
-                    .publicStatus(post.isPublicStatus())
-                    .createdAt(post.getCreatedAt())
-                    .updatedAt(post.getUpdatedAt())
-                    .likeCount(likeCount)
-                    .liked(liked)
-                    .profileImageUrl(author.getProfileImage())
-                    .build();
+        if (!post.isPublicStatus() && (userId == null || !post.getUserId().equals(userId))) {
+            throw new AuthorOnlyException();
         }
 
-        throw new AuthorOnlyException(post.getUserId());
+        return postRepository.findPostDetailResponse(postId, userId);
     }
 
-    private boolean canGetPost(Post post, Long userId) {
-        if (post.isPublicStatus()) {
-            return true;
+    public List<PostResponse> getPosts(PostSortType postSortType, Pageable pageable) {
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime startDate = null;
+        Pageable paginationOnly = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize());
+
+        if (postSortType.equals(PostSortType.LATEST)) {
+            return postRepository.findPostResponsesByLatest(paginationOnly);
         }
-        if (userId == null || userId == 0L) {
-            return false;
+        if (postSortType.equals(PostSortType.WEEKLY_LIKE)) {
+            startDate = now.minusWeeks(1);
         }
-
-        return userId.equals(post.getUserId());
-    }
-
-    public List<PostResponse> getPosts(String sort, LocalDateTime startDate, Pageable pageable) {
-        List<Post> posts = List.of();
-
-        if ("latest".equals(sort)) {
-            posts = postRepository.findAllByPublicStatusTrue();
+        if (postSortType.equals(PostSortType.MONTHLY_LIKE)) {
+            startDate = now.minusMonths(1);
         }
-
-        if ("likes".equals(sort)) {
-            PageRequest cleanPageable =
-                    PageRequest.of(pageable.getPageNumber(), pageable.getPageSize());
-            posts = postRepository.findPublicPostsOrderByPeriodLike(startDate, cleanPageable);
+        if (postSortType.equals(PostSortType.YEARLY_LIKE)) {
+            startDate = now.minusYears(1);
         }
-
-        return posts.stream()
-                .map(
-                        p ->
-                                PostResponse.builder()
-                                        .id(p.getId())
-                                        .title(p.getTitle())
-                                        .content(p.getContent())
-                                        .authorId(p.getUserId())
-                                        .author(p.getUsername())
-                                        .publicStatus(p.isPublicStatus())
-                                        .createdAt(p.getCreatedAt())
-                                        .likeCount(likeRepository.countByPost(p))
-                                        .profileImageUrl(p.getProfileImage())
-                                        .build())
-                .toList();
+        return postRepository.findPostResponsesByDateLike(startDate, paginationOnly);
     }
 
     public List<LikeUserResponse> getLikeUserList(Long postId, Long userId) {
@@ -235,15 +187,7 @@ public class PostService {
             throw new LoginUserNotMatchException(post.getUserId(), userId);
         }
 
-        return likeRepository.findAllByPost(post).stream()
-                .map(
-                        like ->
-                                LikeUserResponse.builder()
-                                        .userId(like.getUserId())
-                                        .profileImageUrl(like.getProfileImage())
-                                        .username(like.getUsername())
-                                        .build())
-                .toList();
+        return likeRepository.findLikeUserResponsesByPostId(postId);
     }
 
     public List<CommentResponse> getPostComments(Long postId, Long userId) {
@@ -253,21 +197,9 @@ public class PostService {
                         .orElseThrow(() -> new PostNotFoundException(postId));
 
         if (!post.isPublicStatus() && !post.getUserId().equals(userId)) {
-            throw new AuthorOnlyException(post.getUserId());
+            throw new AuthorOnlyException();
         }
-        List<Comment> comments = commentRepository.findAllByPost_Id(postId);
-
-        return comments.stream()
-                .map(
-                        c ->
-                                CommentResponse.builder()
-                                        .authorId(c.getUserId())
-                                        .profileImageUrl(c.getProfileImage())
-                                        .commentId(c.getId())
-                                        .author(c.getUsername())
-                                        .content(c.getContent())
-                                        .build())
-                .toList();
+        return commentRepository.findCommentResponsesByPostId(postId);
     }
 
     @Transactional
@@ -284,7 +216,7 @@ public class PostService {
                         .findById(postId)
                         .orElseThrow(() -> new PostNotFoundException(postId));
         if (!post.isPublicStatus() && !post.getUserId().equals(userId)) {
-            throw new AuthorOnlyException(post.getUserId());
+            throw new AuthorOnlyException();
         }
         Comment comment = Comment.builder().user(user).post(post).content(content).build();
 
@@ -292,7 +224,7 @@ public class PostService {
 
         return CommentResponse.builder()
                 .authorId(user.getId())
-                .profileImageUrl(user.getProfileImage())
+                .profileImageUrl(user.getProfileImageUrl())
                 .commentId(comment.getId())
                 .author(user.getUsername())
                 .content(content)
@@ -311,7 +243,7 @@ public class PostService {
                         .orElseThrow(() -> new UserNotFoundException("User ID", userId.toString()));
 
         if (!post.isPublicStatus() && !post.getUserId().equals(userId)) {
-            throw new AuthorOnlyException(post.getUserId());
+            throw new AuthorOnlyException();
         }
 
         try {

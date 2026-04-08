@@ -49,7 +49,7 @@ public class Follow {
     }
 
     public String getFollowerProfileImage() {
-        return follower.getProfileImage();
+        return follower.getProfileImageUrl();
     }
 
     public String getFollowerUsername() {
@@ -61,7 +61,7 @@ public class Follow {
     }
 
     public String getFollowingProfileImage() {
-        return following.getProfileImage();
+        return following.getProfileImageUrl();
     }
 
     public String getFollowingUsername() {

@@ -67,6 +67,6 @@ public class Comment {
     }
 
     public String getProfileImage() {
-        return user.getProfileImage();
+        return user.getProfileImageUrl();
     }
 }
