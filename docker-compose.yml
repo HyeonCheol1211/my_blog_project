@@ -20,9 +20,6 @@ services:
   backend:
     build: ./backend
     container_name: blog-backend
-    # 포트 주석 처리: 이제 Nginx(443)를 통해서만 들어오므로 8080을 외부에 열어둘 필요가 없습니다. 보안 강화!
-    # ports:
-    #   - "8080:8080"
     expose:
       - "8080"
     depends_on:

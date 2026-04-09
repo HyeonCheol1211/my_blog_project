@@ -31,3 +31,14 @@ jobs:
 
       - name: Build with Gradle
         run: ./gradlew clean build
+
+      - name: EC2 원격 배포 실행
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd ~/my_blog_project
+            git pull origin main  # 최신 코드를 땡겨옵니다. (.env는 이미 서버에 있으니 유지됨)
+            docker compose up -d --build backend  # 서버에 있는 .env를 사용해 빌드 및 실행!
