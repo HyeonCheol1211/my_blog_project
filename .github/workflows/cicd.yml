@@ -1,4 +1,4 @@
-name: Spring Boot CI
+name: Spring Boot CI/CD
 
 
 on:
@@ -33,6 +33,7 @@ jobs:
         run: ./gradlew clean build
 
       - name: EC2 원격 배포 실행
+        if: github.event_name == 'push'
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.EC2_HOST }}
