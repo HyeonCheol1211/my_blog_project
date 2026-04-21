@@ -1,16 +1,14 @@
 spring:
-  datasource:
-    url: jdbc:h2:mem:testdb;MODE=MySQL # MySQL 모드로 호환성 높임
-    driver-class-name: org.h2.Driver
-    username: sa
-    password:
-
   jpa:
     hibernate:
-      ddl-auto: create-drop
-    show-sql: true # 테스트 시 쿼리 로그 확인을 위해 추가
+      ddl-auto: create
+    show-sql: true
 
-  servlet: # 테스트 중 파일 업로드 API 호출 시 에러 방지
+  test:
+    database:
+      replace: none
+
+  servlet:
     multipart:
       max-file-size: 10MB
       max-request-size: 50MB
@@ -19,6 +17,12 @@ app:
   cors:
     allowed-origins:
       - http://localhost:5173
+  meta:
+    name: my-blog-backend-test
+    version: test-version
+    commit-sha: test-commit
+    built-at: 2026-04-21T00:00:00Z
+    deployed-at: 2026-04-21T00:01:00Z
 
 jwt:
   secret: "testsecretkeytestsecretkeytestsecretkey123"

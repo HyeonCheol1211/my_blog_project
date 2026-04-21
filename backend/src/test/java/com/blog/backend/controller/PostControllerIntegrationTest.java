@@ -1,9 +1,12 @@
 package com.blog.backend.controller;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -26,12 +29,13 @@ import com.blog.backend.domain.repository.CommentRepository;
 import com.blog.backend.domain.repository.LikeRepository;
 import com.blog.backend.domain.repository.PostRepository;
 import com.blog.backend.domain.repository.UserRepository;
+import com.blog.backend.support.MySqlContainerTestSupport;
 import com.blog.backend.utils.JwtUtil;
 
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
-class PostControllerIntegrationTest {
+class PostControllerIntegrationTest extends MySqlContainerTestSupport {
 
     @Autowired private MockMvc mockMvc;
     @Autowired private JwtUtil jwtUtil;
@@ -62,6 +66,66 @@ class PostControllerIntegrationTest {
                 .andExpect(jsonPath("$.authorId").value(author.getId()))
                 .andExpect(jsonPath("$.liked").value(false))
                 .andExpect(jsonPath("$.categoryName").value("daily"));
+    }
+
+    @Test
+    void shouldAddPostForAuthenticatedUser() throws Exception {
+        User author = saveUser("author");
+
+        mockMvc.perform(
+                        post("/api/posts")
+                                .header(AUTHORIZATION, bearer(author.getId()))
+                                .contentType(APPLICATION_JSON)
+                                .content(
+                                        """
+                                        {"categoryName":"daily","title":"new title","content":"new content","publicStatus":true}
+                                        """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.title").value("new title"))
+                .andExpect(jsonPath("$.authorId").value(author.getId()))
+                .andExpect(jsonPath("$.publicStatus").value(true))
+                .andExpect(jsonPath("$.likeCount").value(0));
+
+        assertThat(postRepository.findAll()).hasSize(1);
+        assertThat(categoryRepository.findByNameAndUser_Id("daily", author.getId())).isPresent();
+    }
+
+    @Test
+    void shouldUpdatePostAndMoveCategory() throws Exception {
+        User author = saveUser("author");
+        Category category = saveCategory(author, "daily", 1L);
+        Post post = savePost(author, category, true);
+
+        mockMvc.perform(
+                        put("/api/posts/{postId}", post.getId())
+                                .header(AUTHORIZATION, bearer(author.getId()))
+                                .contentType(APPLICATION_JSON)
+                                .content(
+                                        """
+                                        {"categoryName":"updated","title":"updated title","content":"updated content","publicStatus":false}
+                                        """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.title").value("updated title"))
+                .andExpect(jsonPath("$.content").value("updated content"))
+                .andExpect(jsonPath("$.publicStatus").value(false));
+
+        assertThat(categoryRepository.findByNameAndUser_Id("daily", author.getId())).isEmpty();
+        assertThat(categoryRepository.findByNameAndUser_Id("updated", author.getId())).isPresent();
+    }
+
+    @Test
+    void shouldDeleteOwnPostAndRemoveEmptyCategory() throws Exception {
+        User author = saveUser("author");
+        Category category = saveCategory(author, "daily", 1L);
+        Post post = savePost(author, category, true);
+
+        mockMvc.perform(
+                        delete("/api/posts/{postId}", post.getId())
+                                .header(AUTHORIZATION, bearer(author.getId())))
+                .andExpect(status().isNoContent());
+
+        assertThat(postRepository.findById(post.getId())).isEmpty();
+        assertThat(categoryRepository.findById(category.getId())).isEmpty();
     }
 
     @Test
@@ -174,6 +238,22 @@ class PostControllerIntegrationTest {
                 .andExpect(
                         jsonPath("$.message")
                                 .value(org.hamcrest.Matchers.containsString("작성자만 접근")));
+    }
+
+    @Test
+    void shouldReturnLikeUsersForAuthor() throws Exception {
+        User author = saveUser("author");
+        User reader = saveUser("reader");
+        Category category = saveCategory(author, "likes", 1L);
+        Post post = savePost(author, category, true);
+        likeRepository.saveAndFlush(Like.builder().post(post).user(reader).build());
+
+        mockMvc.perform(
+                        get("/api/posts/{postId}/likes", post.getId())
+                                .header(AUTHORIZATION, bearer(author.getId())))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].username").value("reader"));
     }
 
     @Test
