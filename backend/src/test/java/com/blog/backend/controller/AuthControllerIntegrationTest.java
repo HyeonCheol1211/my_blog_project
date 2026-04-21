@@ -19,11 +19,12 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import com.blog.backend.domain.User;
 import com.blog.backend.domain.repository.UserRepository;
+import com.blog.backend.support.MySqlContainerTestSupport;
 
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
-class AuthControllerIntegrationTest {
+class AuthControllerIntegrationTest extends MySqlContainerTestSupport {
 
     @Autowired private MockMvc mockMvc;
     @Autowired private UserRepository userRepository;

@@ -25,12 +25,13 @@ import com.blog.backend.domain.repository.CategoryRepository;
 import com.blog.backend.domain.repository.FollowRepository;
 import com.blog.backend.domain.repository.PostRepository;
 import com.blog.backend.domain.repository.UserRepository;
+import com.blog.backend.support.MySqlContainerTestSupport;
 import com.blog.backend.utils.JwtUtil;
 
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
-class UserControllerIntegrationTest {
+class UserControllerIntegrationTest extends MySqlContainerTestSupport {
 
     @Autowired private MockMvc mockMvc;
     @Autowired private JwtUtil jwtUtil;
@@ -63,6 +64,25 @@ class UserControllerIntegrationTest {
     }
 
     @Test
+    void shouldReturnProfileExtraForFollower() throws Exception {
+        User author = saveUser("author", "author@test.com");
+        User follower = saveUser("follower", "follower@test.com");
+        Category category = saveCategory(author, "daily", 2L);
+        savePost(author, category, "public-title", true);
+        savePost(author, category, "private-title", false);
+        followRepository.saveAndFlush(
+                Follow.builder().follower(follower).following(author).build());
+
+        mockMvc.perform(
+                        get("/api/users/profile/extra/{userId}", author.getId())
+                                .header(AUTHORIZATION, bearer(follower.getId())))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.postAllCount").value(2))
+                .andExpect(jsonPath("$.postPublicCount").value(1))
+                .andExpect(jsonPath("$.isFollowing").value(true));
+    }
+
+    @Test
     void shouldReturnOnlyPublicUserPostsForGuest() throws Exception {
         User user = saveUser("author", "author@test.com");
         Category category = saveCategory(user, "daily", 2L);
@@ -88,6 +108,32 @@ class UserControllerIntegrationTest {
                                 .header(AUTHORIZATION, bearer(user.getId())))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(2));
+    }
+
+    @Test
+    void shouldReturnFollowers() throws Exception {
+        User author = saveUser("author", "author@test.com");
+        User follower = saveUser("follower", "follower@test.com");
+        followRepository.saveAndFlush(
+                Follow.builder().follower(follower).following(author).build());
+
+        mockMvc.perform(get("/api/users/{userId}/followers", author.getId()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].username").value("follower"));
+    }
+
+    @Test
+    void shouldReturnFollowings() throws Exception {
+        User author = saveUser("author", "author@test.com");
+        User following = saveUser("following", "following@test.com");
+        followRepository.saveAndFlush(
+                Follow.builder().follower(author).following(following).build());
+
+        mockMvc.perform(get("/api/users/{userId}/followings", author.getId()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].username").value("following"));
     }
 
     @Test

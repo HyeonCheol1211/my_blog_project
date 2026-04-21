@@ -31,6 +31,10 @@ services:
       - DB_USERNAME=${DB_USERNAME}
       - DB_PASSWORD=${DB_PASSWORD}
       - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      - APP_VERSION=${APP_VERSION:-unknown}
+      - APP_COMMIT_SHA=${APP_COMMIT_SHA:-unknown}
+      - APP_BUILT_AT=${APP_BUILT_AT:-unknown}
+      - APP_DEPLOYED_AT=${APP_DEPLOYED_AT:-unknown}
     volumes:
       - ./img_data:/app/img_data
 

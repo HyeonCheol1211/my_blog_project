@@ -26,12 +26,13 @@ import com.blog.backend.domain.repository.CategoryRepository;
 import com.blog.backend.domain.repository.CommentRepository;
 import com.blog.backend.domain.repository.PostRepository;
 import com.blog.backend.domain.repository.UserRepository;
+import com.blog.backend.support.MySqlContainerTestSupport;
 import com.blog.backend.utils.JwtUtil;
 
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
-class CommentControllerIntegrationTest {
+class CommentControllerIntegrationTest extends MySqlContainerTestSupport {
 
     @Autowired private MockMvc mockMvc;
     @Autowired private JwtUtil jwtUtil;
