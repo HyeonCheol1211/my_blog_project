@@ -1,0 +1,23 @@
+name: Check Docker Environment
+
+on:
+  push:
+    branches: [ "main" ] # 원하는 브랜치로 설정
+  workflow_dispatch: # 수동 실행을 위한 트리거
+
+jobs:
+  test-docker:
+    runs-on: ubuntu-latest # self-hosted 러너인 경우 'self-hosted'로 변경
+
+    steps:
+      # 1. Docker 설치 여부 및 클라이언트 버전 확인
+      - name: Check Docker Version
+        run: docker --version
+
+      # 2. Docker 데몬(서버) 실행 상태 및 권한 확인
+      - name: Check Docker Info
+        run: docker info
+
+      # 3. 실제 컨테이너 실행 테스트
+      - name: Run Hello World Container
+        run: docker run --rm hello-world

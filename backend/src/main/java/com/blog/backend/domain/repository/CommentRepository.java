@@ -1,14 +1,15 @@
 package com.blog.backend.domain.repository;
 
-import com.blog.backend.domain.Comment;
-import com.blog.backend.dto.CommentDetailResponse;
-import com.blog.backend.dto.CommentResponse;
+import java.util.List;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
+import com.blog.backend.domain.Comment;
+import com.blog.backend.dto.CommentDetailResponse;
+import com.blog.backend.dto.CommentResponse;
 
 @Repository
 public interface CommentRepository extends JpaRepository<Comment, Long> {
