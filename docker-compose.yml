@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   db:
     image: mysql:8.0
@@ -20,8 +18,8 @@ services:
   backend:
     build: ./backend
     container_name: blog-backend
-    expose:
-      - "8080"
+    ports:
+      - "8080:8080"
     depends_on:
       db:
         condition: service_healthy
