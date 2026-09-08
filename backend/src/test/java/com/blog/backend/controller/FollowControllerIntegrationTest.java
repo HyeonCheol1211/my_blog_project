@@ -18,12 +18,13 @@ import com.blog.backend.domain.Follow;
 import com.blog.backend.domain.User;
 import com.blog.backend.domain.repository.FollowRepository;
 import com.blog.backend.domain.repository.UserRepository;
+import com.blog.backend.support.MySqlContainerTestSupport;
 import com.blog.backend.utils.JwtUtil;
 
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
-class FollowControllerIntegrationTest {
+class FollowControllerIntegrationTest extends MySqlContainerTestSupport {
 
     @Autowired private MockMvc mockMvc;
     @Autowired private JwtUtil jwtUtil;

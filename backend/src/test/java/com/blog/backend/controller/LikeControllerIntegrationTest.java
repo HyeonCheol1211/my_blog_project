@@ -20,12 +20,13 @@ import com.blog.backend.domain.repository.CategoryRepository;
 import com.blog.backend.domain.repository.LikeRepository;
 import com.blog.backend.domain.repository.PostRepository;
 import com.blog.backend.domain.repository.UserRepository;
+import com.blog.backend.support.MySqlContainerTestSupport;
 import com.blog.backend.utils.JwtUtil;
 
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
-class LikeControllerIntegrationTest {
+class LikeControllerIntegrationTest extends MySqlContainerTestSupport {
 
     @Autowired private MockMvc mockMvc;
     @Autowired private JwtUtil jwtUtil;

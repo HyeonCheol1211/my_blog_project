@@ -13,6 +13,12 @@ server:
 app:
   cors:
     allowed-origins: https://blog-front-temp.vercel.app,https://hc-domain.site,http://localhost:5173
+  meta:
+    name: my-blog-backend
+    version: ${APP_VERSION:unknown}
+    commit-sha: ${APP_COMMIT_SHA:unknown}
+    built-at: ${APP_BUILT_AT:unknown}
+    deployed-at: ${APP_DEPLOYED_AT:unknown}
 
 jwt:
   secret: ${JWT_SECRET_KEY}
